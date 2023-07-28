@@ -1,0 +1,11 @@
+.idea
+*.iml
+.DS_Store
+import/ns.yaml
+import/pull-secret.yaml
+import/infraenv.yaml
+import/agent-cluster-install.yaml
+import/kubeadmin-passwd-secret.yaml
+import/kubeconfig-secret.yaml
+import/cluster-deployment.yaml
+import/managed-cluster.yaml

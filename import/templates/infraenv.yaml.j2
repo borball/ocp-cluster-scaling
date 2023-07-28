@@ -1,0 +1,15 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: {{ environ('cluster_name') }}
+  namespace: {{ environ('namespace') }}
+  labels:
+    agentclusterinstalls.extensions.hive.openshift.io/location: bos2
+    networkType: static
+spec:
+  pullSecretRef:
+    name: pull-secret
+  sshAuthorizedKey: '{{ environ('ssh_key') }}'
+  nmStateConfigLabelSelector:
+    matchLabels:
+      infraenvs.agent-install.openshift.io: {{ environ('cluster_name') }}

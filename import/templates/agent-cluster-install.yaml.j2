@@ -1,0 +1,22 @@
+apiVersion: extensions.hive.openshift.io/v1beta1
+kind: AgentClusterInstall
+metadata:
+  name: {{ environ('cluster_name') }}
+  namespace: {{ environ('namespace') }}
+spec:
+  apiVIP: {{ environ('api_vip') }}
+  clusterDeploymentRef:
+    name: {{ environ('cluster_name') }}
+  imageSetRef:
+    name: {{ environ('imageset') }}
+  ingressVIP: {{ environ('ingress_vip') }}
+  platformType: BareMetal
+  networking:
+    clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+    serviceNetwork:
+    - 172.30.0.0/16
+  provisionRequirements:
+    controlPlaneAgents: 3
+  sshPublicKey: "{{ environ('ssh_key') }}"

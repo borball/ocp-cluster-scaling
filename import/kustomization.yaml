@@ -1,0 +1,13 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ns.yaml
+  - pull-secret.yaml
+  - infraenv.yaml
+  - agent-cluster-install.yaml
+  - kubeadmin-passwd-secret.yaml
+  - kubeconfig-secret.yaml
+  - cluster-deployment.yaml
+  - managed-cluster.yaml

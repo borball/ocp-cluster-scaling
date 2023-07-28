@@ -1,0 +1,7 @@
+apiVersion: agent-install.openshift.io/v1beta1
+kind: Agent
+metadata:
+  name: {{ environ('cluster_name') }}
+  namespace: {{ environ('namespace') }}
+spec:
+  approved: true
