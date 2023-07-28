@@ -64,7 +64,7 @@ NAME         AGE
 lvmcluster   107s
 ```
 
-### Install OpenShift MCE(multiple Cluster Engine) operator
+### Install OpenShift MCE(Multi-Cluster Engine) operator
 
 ```shell
 oc apply -k ./mce/operator
@@ -140,7 +140,7 @@ NAME                 STATUS      AGE
 multiclusterengine   Available   109s
 
 ```
-### Import the cluster into CIM/MCE
+### Import the cluster into MCE hub
 
 ```shell
 
