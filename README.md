@@ -2,9 +2,15 @@
 
 ## Ideas
 
-TODO
+Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install MCE on a dedicated cluster or the target cluster which is going to expand.
 
 ## Procedures
+
+- Setup storage solution if not already have
+- Install MCE Operator and create MCE hub instance
+- Import the target cluster into the MCE hub
+- Add worker with MCE
+- Add master with MCE and replace a broken one
 
 ### Storage
 
@@ -91,7 +97,6 @@ oc apply -k ./mce/hub-instance
 Validate if hub instance has been created:
 
 ```
-$ oc get po -n multicluster-engine
 $ oc get pod -n multicluster-engine 
 NAME                                                   READY   STATUS    RESTARTS      AGE
 agentinstalladmission-849799f9cc-wnv6n                 1/1     Running   0             24m
