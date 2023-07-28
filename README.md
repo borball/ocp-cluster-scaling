@@ -1,5 +1,9 @@
 # Procedures to scale an OpenShift cluster
 
+## Ideas
+
+TODO
+
 ## Procedures
 
 ### Storage
@@ -169,5 +173,8 @@ local-cluster   true           https://api.compact.outbound.vz.bos2.lab:6443   T
 
 ### Add worker node 
 
+TODO
 
-###  
+###  Replace a master node
+
+TODO
