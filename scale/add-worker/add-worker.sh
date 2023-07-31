@@ -37,16 +37,19 @@ else
   jinja2 ./templates/nmstate.yaml.j2 $config_file | oc apply -f -
 fi
 
-echo "Create agent to add host into InfraEnv"
-jinja2 ./templates/agent.yaml.j2 $config_file
-jinja2 ./templates/agent.yaml.j2 $config_file | oc apply -f -
-
 
 #boot the node
 bmc_address=$(yq '.worker.bmc.address' $config_file)
 bmc_username=$(yq '.worker.bmc.address' $config_file)
 bmc_password=$(yq '.worker.bmc.address' $config_file)
-iso_image=$(yq '.worker.iso.address' $config_file)
+iso_image=$(yq '.iso.address' $config_file)
 kvm_uuid=$(yq '.worker.bmc.kvm_uuid' $config_file)
 
 ../boot-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
+
+# TODO:
+echo "Create agent to add host into InfraEnv"
+jinja2 ./templates/agent.yaml.j2 $config_file
+jinja2 ./templates/agent.yaml.j2 $config_file | oc apply -f -
+
+
