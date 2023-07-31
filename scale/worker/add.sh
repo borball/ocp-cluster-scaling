@@ -54,7 +54,7 @@ until ( oc get agent -n $namespace |grep -m 1 "auto-assign" ); do
 done
 
 worker_hostname=$(yq '.worker.hostname' $config_file)
-worker_disk=$(yq '.worker.disk' $config_file)
+worker_disk=$(yq '.worker.disk // "" ' $config_file)
 
 agent_name=$(oc get agent -n $namespace -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
 
