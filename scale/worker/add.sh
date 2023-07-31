@@ -71,7 +71,7 @@ oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replac
 #Monitor the installation progress
 while [[ "Done" != $(oc patch agent -n $namespace $cluster_name -o jsonpath='..currentStage') ]]; do
   echo "-------------------------------"
-  installationPercentage=$(oc patch agent -n $namespace $cluster_name -o jsonpath='..installationPercentage')
+  installationPercentage=$(oc get agent -n $namespace $cluster_name -o jsonpath='..installationPercentage')
   echo "Installation in progress: completed $installationPercentage/100"
   sleep 15
 done
