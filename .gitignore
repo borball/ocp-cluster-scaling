@@ -9,5 +9,4 @@ import/kubeadmin-passwd-secret.yaml
 import/kubeconfig-secret.yaml
 import/cluster-deployment.yaml
 import/managed-cluster.yaml
-*.log
 *.iso

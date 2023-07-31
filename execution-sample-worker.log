@@ -1,0 +1,183 @@
+## Sample logs of adding a worker node
+
+# oc get nodes
+NAME                                   STATUS   ROLES                         AGE    VERSION
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   8m2s   v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   27m    v1.25.11+1485cc9
+master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   28m    v1.25.11+1485cc9
+
+# oc apply -k lvm/operator/
+namespace/openshift-storage created
+operatorgroup.operators.coreos.com/lvms-operator-operatorgroup created
+subscription.operators.coreos.com/lvms-operator created
+
+# oc apply -k lvm/operator/
+namespace/openshift-storage created
+operatorgroup.operators.coreos.com/lvms-operator-operatorgroup created
+subscription.operators.coreos.com/lvms-operator created
+
+# oc apply -k ./mce/operator/
+namespace/multicluster-engine created
+operatorgroup.operators.coreos.com/multicluster-engine created
+subscription.operators.coreos.com/multicluster-engine created
+
+# oc apply -k mce/hub-instance/
+agentserviceconfig.agent-install.openshift.io/agent created
+Warning: resource provisionings/provisioning-configuration is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by oc apply. oc apply should only be used on resources created declaratively by either oc create --save-config or oc apply. The missing annotation will be patched automatically.
+provisioning.metal3.io/provisioning-configuration configured
+multiclusterengine.multicluster.openshift.io/multiclusterengine created
+
+# ./import.sh /root/workload-enablement/sno/kubeconfig-compact.yaml /root/workload-enablement/sno/kubeconfig-compact.yaml kubeadmin cKJPq-5cYqU-qvIvn-gExSA
+namespace/compact created
+secret/compact-admin-kubeconfig created
+secret/compact-admin-password created
+secret/pull-secret created
+infraenv.agent-install.openshift.io/compact created
+managedcluster.cluster.open-cluster-management.io/compact created
+agentclusterinstall.extensions.hive.openshift.io/compact created
+clusterdeployment.hive.openshift.io/compact created
+
+
+# oc get mcl
+NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                            JOINED   AVAILABLE   AGE
+compact         true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        7m27s
+local-cluster   true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        28m
+
+# ./add.sh config-worker1.yaml 
+Worker node uses static IP, will create nmstateconfig
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  labels:
+    infraenvs.agent-install.openshift.io: compact
+  name: worker1.compact.outbound.vz.bos2.lab
+  namespace: compact
+spec:
+  interfaces:
+  - macAddress: de:ad:be:ff:10:33
+    name: ens1f0
+
+  config:
+    dns-resolver:
+      config:
+        server:
+        - 192.168.58.15
+        
+    interfaces:
+    - name: ens1f0
+      type: ethernet
+      state: up
+      mac-address: de:ad:be:ff:10:33
+      ipv4:
+        address:
+        - ip: 192.168.58.33
+          prefix-length: 25
+        enabled: true
+        dhcp: false
+      
+    routes:
+      config:
+      - destination: 0.0.0.0/0
+        next-hop-address: 192.168.58.1
+        next-hop-interface: ens1f0
+      
+
+nmstateconfig.agent-install.openshift.io/worker1.compact.outbound.vz.bos2.lab unchanged
+-------------------------------
+Power off server.
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+-------------------------------
+
+204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+-------------------------------
+
+Insert Virtual Media: http://192.168.58.15/iso/compact-discovery.iso
+204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+-------------------------------
+
+Virtual Media Status: 
+{
+  "@odata.type": "#VirtualMedia.v1_4_0.VirtualMedia",
+  "Id": "Cd",
+  "Name": "Virtual CD",
+  "MediaTypes": [
+    "CD",
+    "DVD"
+  ],
+  "Image": "compact-discovery.iso",
+  "ImageName": "",
+  "ConnectedVia": "URI",
+  "Inserted": true,
+  "WriteProtected": true,
+  "Actions": {
+    "#VirtualMedia.EjectMedia": {
+      "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia"
+    },
+    "#VirtualMedia.InsertMedia": {
+      "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia"
+    },
+    "Oem": {}
+  },
+  "UserName": "",
+  "Password": "",
+  "Certificates": {
+    "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Certificates"
+  },
+  "VerifyCertificate": false,
+  "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd",
+  "@Redfish.Copyright": "Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
+}
+-------------------------------
+
+Boot node from Virtual Media Once
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003
+-------------------------------
+
+Power on server.
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+
+-------------------------------
+Node is booting from virtual media mounted with http://192.168.58.15/iso/compact-discovery.iso, check your BMC console to monitor the progress.
+
+
+Node booting.
+
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+No resources found in compact namespace.
+22222222-1111-1111-0000-000000000003             false      auto-assign   
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+-------------------------------
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed 11/100
+Installation in progress: completed 33/100
+Installation in progress: completed 33/100
+Installation in progress: completed 33/100
+Installation in progress: completed 33/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation completed.
+NAME                                   STATUS   ROLES                         AGE    VERSION
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   96m    v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   115m   v1.25.11+1485cc9
+master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   116m   v1.25.11+1485cc9
+worker1.compact.outbound.vz.bos2.lab   Ready    worker                        65s    v1.25.11+1485cc9
