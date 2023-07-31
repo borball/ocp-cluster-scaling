@@ -31,3 +31,4 @@ worker:
     username: Administrator
     password: dummy
     kvm_uuid: 22222222-1111-1111-0000-000000000003
+
