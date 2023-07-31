@@ -94,7 +94,7 @@ pod/multicluster-engine-operator-86677b548c-xsjwr   1/1     Running   0         
 oc apply -k ./mce/hub-instance
 ```
 
-Validate if hub instance has been created:
+Validate if hub instance has been created, a sample on a compact cluster(3-master cluster):
 
 ```
 $ oc get pod -n multicluster-engine 
@@ -140,13 +140,14 @@ NAME                 STATUS      AGE
 multiclusterengine   Available   109s
 
 ```
-### Import the cluster into MCE hub
+### Import the cluster which is going to scale into MCE hub
 
 ```shell
 
 $ cd import
 $ ./import.sh 
 Usage: ./import.sh [hub cluster kubeconfig] [spoke cluster kubeconfig] [admin of spoke cluster] [password of spoke cluster]
+       If the hub cluster kubeconfig equals to spoke cluster kubeconfig, it means you will use the cluster itself as MCE hub and expand the cluster itself.
 Example: ./import.sh kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr
 
 ```

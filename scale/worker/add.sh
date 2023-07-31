@@ -49,8 +49,7 @@ kvm_uuid=$(yq '.worker.bmc.kvm_uuid' $config_file)
 
 
 until ( oc get agent -n $namespace |grep -m 1 "auto-assign" ); do
-  echo -n "."
-  sleep 1
+  sleep 5
 done
 
 worker_hostname=$(yq '.worker.hostname' $config_file)

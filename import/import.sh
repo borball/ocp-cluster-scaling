@@ -8,6 +8,7 @@ fi
 
 usage(){
   echo "Usage: $0 [hub cluster kubeconfig] [spoke cluster kubeconfig] [admin of spoke cluster] [password of spoke cluster]"
+  echo "If the hub cluster kubeconfig equals to spoke cluster kubeconfig, it means you will use the cluster itself as MCE hub and expand the cluster itself."
   echo "Example: $0 kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr"
 }
 

@@ -144,4 +144,5 @@ echo "-------------------------------"
 echo "Node is booting from virtual media mounted with $iso_image, check your BMC console to monitor the progress."
 echo 
 echo
-echo -n "Node booting."
+echo "Node booting."
+echo
