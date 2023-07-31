@@ -32,8 +32,8 @@ if [ "true" = "$(yq '.worker.dhcp' $config_file)" ]; then
   echo "Worker node uses DHCP, will not create nmstateconfig"
 else
   echo "Worker node uses static IP, will create nmstateconfig"
-	
-	jinja2 $templates/nmstate.yaml.j2
+
+  jinja2 $templates/nmstate.yaml.j2
   jinja2 $templates/nmstate.yaml.j2 $config_file | oc apply -f -
 fi
 

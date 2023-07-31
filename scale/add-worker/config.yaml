@@ -1,5 +1,5 @@
 hub:
-  kubeconfig: 
+  kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
 
 cluster:
   name: compact
@@ -9,7 +9,7 @@ iso:
 
 worker:
   #it won't create nmstateconfig if dhcp is true
-  dhcp: true
+  dhcp: false
   hostname: worker1.compact.outbound.vz.bos2.lab
   dns:
     - 192.168.58.15
