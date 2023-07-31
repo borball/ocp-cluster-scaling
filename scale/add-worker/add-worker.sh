@@ -43,4 +43,10 @@ jinja2 ./templates/agent.yaml.j2 $config_file | oc apply -f -
 
 
 #boot the node
-../boot-iso.sh $(yq '.worker.bmc.address' $config_file) $(yq '.worker.bmc.username' $config_file):$(yq '.worker.bmc.password' $config_file) $(yq '.worker.bmc.kvm_uuid' $config_file)
+bmc_address=$(yq '.worker.bmc.address' $config_file)
+bmc_username=$(yq '.worker.bmc.address' $config_file)
+bmc_password=$(yq '.worker.bmc.address' $config_file)
+iso_image=$(yq '.worker.iso.address' $config_file)
+kvm_uuid=$(yq '.worker.bmc.kvm_uuid' $config_file)
+
+../boot-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
