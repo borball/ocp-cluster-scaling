@@ -2,6 +2,10 @@
 #
 # script to import the cluster into the MCE hub
 
+if ! type "yq" > /dev/null; then
+  echo "Cannot find yq in the path, please install yq on the node first. ref: https://github.com/mikefarah/yq#install"
+fi
+
 usage(){
   echo "Usage: $0 [hub cluster kubeconfig] [spoke cluster kubeconfig] [admin of spoke cluster] [password of spoke cluster]"
   echo "Example: $0 kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr"

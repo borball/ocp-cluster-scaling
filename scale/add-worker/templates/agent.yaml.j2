@@ -4,4 +4,5 @@ metadata:
   name: {{ environ('cluster_name') }}
   namespace: {{ environ('namespace') }}
 spec:
+  hostname: {{ worker.hostname }}
   approved: true

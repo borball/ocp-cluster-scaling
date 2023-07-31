@@ -4,7 +4,7 @@ metadata:
   name: {{ environ('cluster_name') }}
   namespace: {{ environ('namespace') }}
   labels:
-    agentclusterinstalls.extensions.hive.openshift.io/location: bos2
+    agentclusterinstalls.extensions.hive.openshift.io/location: anywhere
     networkType: static
 spec:
   pullSecretRef:
