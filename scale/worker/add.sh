@@ -70,12 +70,16 @@ fi
 #Trigger the installation
 oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/clusterDeploymentName", "value": {"name": "'${cluster_name}'", "namespace": "'${namespace}'"} }]'
 
+echo "-------------------------------"
+
 #Monitor the installation progress
 while [[ "Done" != $(oc get agent -n $namespace $agent_name -o jsonpath='{..currentStage}') ]]; do
-  echo "-------------------------------"
   installationPercentage=$(oc get agent -n $namespace $agent_name -o jsonpath='{..installationPercentage}')
   echo "Installation in progress: completed $installationPercentage/100"
   sleep 15
 done
 
 echo "Installation completed."
+
+oc get nodes
+

@@ -190,50 +190,60 @@ The ISO file will be saved as discovery.iso in the current folder. Next you can 
 - Prepare a config file like config-worker.yaml, following is an example:
 
 	```yaml
+	#kueconfig location of MCE hub instance
   hub:
     kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
 
+  #name of the cluster which is going to expand
   cluster:
     name: compact
-
+  
+  #where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
   iso:
     address: http://192.168.58.15/iso/compact-discovery.iso
 
   worker:
-    #it won't create nmstateconfig if dhcp is true
+    ## it won't create nmstateconfig if dhcp is true
     dhcp: false
     hostname: worker1.compact.outbound.vz.bos2.lab
     dns:
-    	- 192.168.58.15
+      - 192.168.58.15
       #- 2600:52:7:58::15
     interface: ens1f0
     mac: de:ad:be:ff:10:33
     ipv4:
-    	enabled: true
-    	ip: 192.168.58.33
-    	prefix: 25
-    	gateway: 192.168.58.1
+      enabled: true
+      ip: 192.168.58.33
+      prefix: 25
+      gateway: 192.168.58.1
     ipv6:
-    	enabled: false
-    	ip: 2600:52:7:58::58
-    	prefix: 64
-    	gateway: 2600:52:7:58::1
+      enabled: false
+      ip: 2600:52:7:58::58
+      prefix: 64
+      gateway: 2600:52:7:58::1
     bmc:
-    	address: 192.168.58.15:8080
-    	username: Administrator
-    	password: dummy
-    	kvm_uuid: 22222222-1111-1111-0000-000000000003
+      address: 192.168.58.15:8080
+      username: Administrator
+      password: dummy
+      kvm_uuid: 22222222-1111-1111-0000-000000000003
 
 	```
+
 
 - Add the worker into the MCE and target cluster
 
 	```shell
-  $ cd add-worker
-  $ ./add-worker.sh config-compact.yaml
+  $ cd worker
+  $ ./add.sh config-compact.yaml
 
 	```
+  
+  The script will boot the new worker node from the discovery image and start the deployment, following is an execution sample:
 
+  ```shell
+  $ ./add.sh config-worker1.yaml
+  
+  ```
 ###  Replace a master node
 
 TODO

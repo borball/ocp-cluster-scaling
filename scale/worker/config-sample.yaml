@@ -1,12 +1,16 @@
+#kueconfig location of MCE hub instance
 hub:
   kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
 
+#name of the cluster which is going to expand
 cluster:
   name: compact
 
+#where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
 iso:
   address: http://192.168.58.15/iso/compact-discovery.iso
 
+#worker node information
 worker:
   #it won't create nmstateconfig if dhcp is true
   dhcp: false

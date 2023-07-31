@@ -1,4 +1,6 @@
 #!/bin/bash
+# 
+# Boot the node from the iso image
 
 set -euoE pipefail
 
