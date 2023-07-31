@@ -56,22 +56,24 @@ done
 worker_hostname=$(yq '.worker.hostname' $config_file)
 worker_disk=$(yq '.worker.disk' $config_file)
 
-oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'${worker_hostname}'" }]'
-oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
+agent_name=$(oc get agent -n $namespace -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
+
+oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'${worker_hostname}'" }]'
+oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
 sleep 10
-oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replace", "path": "/spec/role", "value": "worker" }]'
+oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/role", "value": "worker" }]'
 
 if [ ! -z $worker_disk ]; then
-  oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replace", "path": "/spec/installation_disk_id", "value": "'${worker_disk}'"}]'
+  oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/installation_disk_id", "value": "'${worker_disk}'"}]'
 fi
 
 #Trigger the installation
-oc patch agent -n $namespace $cluster_name --type=json --patch '[{ "op": "replace", "path": "/spec/clusterDeploymentName", "value": {"name": "'${cluster_name}'", "namespace": "'${namespace}'"} }]'
+oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/clusterDeploymentName", "value": {"name": "'${cluster_name}'", "namespace": "'${namespace}'"} }]'
 
 #Monitor the installation progress
-while [[ "Done" != $(oc patch agent -n $namespace $cluster_name -o jsonpath='..currentStage') ]]; do
+while [[ "Done" != $(oc patch agent -n $namespace $agent_name -o jsonpath='..currentStage') ]]; do
   echo "-------------------------------"
-  installationPercentage=$(oc get agent -n $namespace $cluster_name -o jsonpath='..installationPercentage')
+  installationPercentage=$(oc get agent -n $namespace $agent_name -o jsonpath='..installationPercentage')
   echo "Installation in progress: completed $installationPercentage/100"
   sleep 15
 done
