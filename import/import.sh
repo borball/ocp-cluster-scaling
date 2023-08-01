@@ -39,13 +39,7 @@ och() {
 }
 export -f och
 
-if [ "$kubeconfig_hub" = "$kubeconfig_spoke" ]; then
-  echo "hub cluster kubeconfig = spoke cluster kubeconfig, will use 'local-cluster' as the imported cluster."
-  export cluster_name=local-cluster
-else
-  export cluster_name=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
-fi
-
+export cluster_name=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
 export namespace=$cluster_name
 export pull_secret=$(ocs get secrets -n openshift-config pull-secret -o jsonpath={.data.\\.dockerconfigjson})
 export ssh_key=$(ocs get mc 99-master-ssh -o jsonpath={..sshAuthorizedKeys[0]})
@@ -67,6 +61,13 @@ jinja2 ./templates/agent-cluster-install.yaml.j2 > ./agent-cluster-install.yaml
 jinja2 ./templates/kubeadmin-passwd-secret.yaml.j2 > ./kubeadmin-passwd-secret.yaml
 jinja2 ./templates/kubeconfig-secret.yaml.j2 > ./kubeconfig-secret.yaml
 jinja2 ./templates/cluster-deployment.yaml.j2 > ./cluster-deployment.yaml
-jinja2 ./templates/managed-cluster.yaml.j2 > ./managed-cluster.yaml
+
+if [ "$kubeconfig_hub" = "$kubeconfig_spoke" ]; then
+  echo "hub cluster kubeconfig = spoke cluster kubeconfig, will use 'local-cluster' as the imported cluster."
+  cp ./templates/kustomization-local-cluster.yaml ./kustomization.yaml
+else
+  jinja2 ./templates/managed-cluster.yaml.j2 > ./managed-cluster.yaml
+  cp ./templates/kustomization-dedicated-cluster.yaml ./kustomization.yaml
+fi
 
 och apply -k ./
