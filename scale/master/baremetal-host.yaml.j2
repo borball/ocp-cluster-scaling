@@ -1,0 +1,25 @@
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: {{ master.hostname }}
+  namespace: openshift-machine-api
+spec:
+  automatedCleaningMode: metadata
+  bmc:
+    address: ""
+    credentialsName: ""
+  bootMACAddress: {{ master.mac }}
+  bootMode: {{ environ('boot_mode') }}
+  consumerRef:
+    apiVersion: machine.openshift.io/v1beta1
+    kind: Machine
+    name: {{ environ('infra_id') }}-master-3
+    namespace: openshift-machine-api
+  customDeploy:
+    method: install_coreos
+  externallyProvisioned: true
+  hardwareProfile: unknown
+  online: true
+  userData:
+    name: master-user-data-managed
+    namespace: openshift-machine-api
