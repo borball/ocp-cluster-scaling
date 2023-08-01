@@ -83,7 +83,8 @@ echo "Installation completed."
 oc get nodes
 
 #create bmh and machine
-export infra_id=$(oc get -n $namespace ClusterDeployment -o jsonpath={..infraID})
+infra_id=$(oc get -n $namespace ClusterDeployment -o jsonpath={..infraID})
+export machine_name="$infra_id-master-9"
 replaced_master=$(yq '.master.replaced' $config_file)
 export boot_mode=$(oc get bmh -n openshift-machine-api $replaced_master -o jsonpath={.spec.bootMode})
 
@@ -93,3 +94,12 @@ jinja2 ./baremetal-host.yaml.j2 $config_file | oc apply -f -
 jinja2 ./machine.yaml.j2 $config_file
 jinja2 ./machine.yaml.j2 $config_file | oc apply -f -
 
+new_host=$(yq '.master.hostname' $config_file)
+./link-machine-and-node.sh $machine_name $new_host
+
+oc rsh -n openshift-etcd etcd-$new_host etcdctl member list -w table
+
+#oc delete bmh -n openshift-machine-api $replaced_master
+#oc delete machine -n openshift-machine-api compact-84mqw-master-2
+
+#oc get nodes
