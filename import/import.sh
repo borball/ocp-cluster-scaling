@@ -61,13 +61,6 @@ jinja2 ./templates/agent-cluster-install.yaml.j2 > ./agent-cluster-install.yaml
 jinja2 ./templates/kubeadmin-passwd-secret.yaml.j2 > ./kubeadmin-passwd-secret.yaml
 jinja2 ./templates/kubeconfig-secret.yaml.j2 > ./kubeconfig-secret.yaml
 jinja2 ./templates/cluster-deployment.yaml.j2 > ./cluster-deployment.yaml
-
-if [ "$kubeconfig_hub" = "$kubeconfig_spoke" ]; then
-  echo "hub cluster kubeconfig = spoke cluster kubeconfig, will use 'local-cluster' as the imported cluster."
-  cp ./templates/kustomization-local-cluster.yaml ./kustomization.yaml
-else
-  jinja2 ./templates/managed-cluster.yaml.j2 > ./managed-cluster.yaml
-  cp ./templates/kustomization-dedicated-cluster.yaml ./kustomization.yaml
-fi
+jinja2 ./templates/managed-cluster.yaml.j2 > ./managed-cluster.yaml
 
 och apply -k ./
