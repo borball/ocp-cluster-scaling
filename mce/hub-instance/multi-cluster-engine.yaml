@@ -5,5 +5,5 @@ metadata:
 spec:
   overrides:
     components:
-      name: "local-cluster"
-      enabled: "false"
+      - name: "local-cluster"
+        enabled: false
