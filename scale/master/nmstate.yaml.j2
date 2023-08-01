@@ -15,7 +15,7 @@ spec:
     dns-resolver:
       config:
         server:
-        {% for dns in worker.dns -%}
+        {% for dns in master.dns -%}
         - {{ dns }}
         {% endfor %}
     interfaces:
@@ -23,7 +23,7 @@ spec:
       type: ethernet
       state: up
       mac-address: {{ master.mac }}
-      {% if worker.ipv4.enabled is sameas true -%}
+      {% if master.ipv4.enabled is sameas true -%}
       ipv4:
         address:
         - ip: {{ master.ipv4.ip }}
@@ -31,7 +31,7 @@ spec:
         enabled: {{ master.ipv4.enabled|lower }}
         dhcp: false
       {% endif -%}
-      {% if worker.ipv6.enabled is sameas true -%}  
+      {% if master.ipv6.enabled is sameas true -%}  
       ipv6:
         address:
         - ip: {{ master.ipv6.ip }}
@@ -41,12 +41,12 @@ spec:
       {% endif %}
     routes:
       config:
-      {% if worker.ipv4.enabled is sameas true -%}
+      {% if master.ipv4.enabled is sameas true -%}
       - destination: 0.0.0.0/0
         next-hop-address: {{ master.ipv4.gateway }}
         next-hop-interface: {{ master.interface }}
       {% endif -%}
-      {% if worker.ipv6.enabled is sameas true -%}
+      {% if master.ipv6.enabled is sameas true -%}
       - destination: ::/0
         next-hop-address: {{ master.ipv6.gateway }}
         next-hop-interface: {{ master.interface }}
