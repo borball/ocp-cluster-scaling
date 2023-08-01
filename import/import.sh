@@ -39,7 +39,13 @@ och() {
 }
 export -f och
 
-export cluster_name=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
+if [ "$kubeconfig_hub" = "$kubeconfig_spoke" ]; then
+  echo "hub cluster kubeconfig = spoke cluster kubeconfig, will use 'local-cluster' as the imported cluster."
+  export cluster_name=local-cluster
+else
+  export cluster_name=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
+fi
+
 export namespace=$cluster_name
 export pull_secret=$(ocs get secrets -n openshift-config pull-secret -o jsonpath={.data.\\.dockerconfigjson})
 export ssh_key=$(ocs get mc 99-master-ssh -o jsonpath={..sshAuthorizedKeys[0]})
