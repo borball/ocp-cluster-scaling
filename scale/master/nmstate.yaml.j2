@@ -1,0 +1,54 @@
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  labels:
+    infraenvs.agent-install.openshift.io: {{ environ('cluster_name') }}
+  name: {{ master.hostname }}
+  namespace: {{ environ('cluster_name') }}
+spec:
+  interfaces:
+  - macAddress: {{ master.mac }}
+    name: {{ master.interface }}
+
+  config:
+    dns-resolver:
+      config:
+        server:
+        {% for dns in worker.dns -%}
+        - {{ dns }}
+        {% endfor %}
+    interfaces:
+    - name: {{ master.interface }}
+      type: ethernet
+      state: up
+      mac-address: {{ master.mac }}
+      {% if worker.ipv4.enabled is sameas true -%}
+      ipv4:
+        address:
+        - ip: {{ master.ipv4.ip }}
+          prefix-length: {{ master.ipv4.prefix }}
+        enabled: {{ master.ipv4.enabled|lower }}
+        dhcp: false
+      {% endif -%}
+      {% if worker.ipv6.enabled is sameas true -%}  
+      ipv6:
+        address:
+        - ip: {{ master.ipv6.ip }}
+          prefix-length: {{ master.ipv6.prefix }}
+        enabled: {{ master.ipv6.enabled|lower }}
+        dhcp: false
+      {% endif %}
+    routes:
+      config:
+      {% if worker.ipv4.enabled is sameas true -%}
+      - destination: 0.0.0.0/0
+        next-hop-address: {{ master.ipv4.gateway }}
+        next-hop-interface: {{ master.interface }}
+      {% endif -%}
+      {% if worker.ipv6.enabled is sameas true -%}
+      - destination: ::/0
+        next-hop-address: {{ master.ipv6.gateway }}
+        next-hop-interface: {{ master.interface }}
+      {% endif %}
+
