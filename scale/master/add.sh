@@ -116,6 +116,8 @@ oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
 
 echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
 
+#ssh 192.168.58.14 'kcli stop vm vm5'
+
 echo "You can type ctrl+c to stop the watch below:"
 
 oc get co -w
