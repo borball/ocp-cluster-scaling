@@ -40,8 +40,8 @@ fi
 
 #boot the node
 bmc_address=$(yq '.worker.bmc.address' $config_file)
-bmc_username=$(yq '.worker.bmc.address' $config_file)
-bmc_password=$(yq '.worker.bmc.address' $config_file)
+bmc_username=$(yq '.master.bmc.username' $config_file)
+bmc_password=$(yq '.master.bmc.password' $config_file)
 iso_image=$(yq '.iso.address' $config_file)
 kvm_uuid=$(yq '.worker.bmc.kvm_uuid' $config_file)
 
@@ -79,6 +79,6 @@ while [[ "Done" != $(oc get agent -n $namespace $agent_name -o jsonpath='{..curr
 done
 
 echo "Installation completed."
-
+echo
 oc get nodes
 

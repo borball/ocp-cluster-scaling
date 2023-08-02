@@ -10,7 +10,7 @@ Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install 
 - Install MCE Operator and create MCE hub instance
 - Import the target cluster into the MCE hub
 - Add worker with MCE
-- Add master with MCE and replace a broken one
+- Add master with MCE and replace a broken(or healthy) one
 
 ### Storage
 
@@ -146,8 +146,8 @@ multiclusterengine   Available   109s
 
 $ cd import
 $ ./import.sh 
-Usage: ./import.sh [hub cluster kubeconfig] [spoke cluster kubeconfig] [admin of spoke cluster] [password of spoke cluster]
-       If the hub cluster kubeconfig equals to spoke cluster kubeconfig, it means you will use the cluster itself as MCE hub and expand the cluster itself.
+Usage: ./import.sh [hub-cluster-kubeconfig] [spoke-cluster-kubeconfig] [spoke-cluster-admin] [spoke-cluster-password]
+       If the hub-cluster-kubeconfig equals to spoke-cluster-kubeconfig, it means it is going to expand tge cluster itself.
 Example: ./import.sh kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr
 
 ```
@@ -173,27 +173,28 @@ Validate if the cluster has been imported:
 $ oc get mcl
 NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                            JOINED   AVAILABLE   AGE
 compact         true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        6m19s
-local-cluster   true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        57m
-
 ```
 
 ### Add worker node 
 
 - Download the discovery ISO:
 
-```shell
-$ cd scale
-./download-iso.sh <cluster>
-```
+    ```shell
+    $ cd scale
+    ./download-iso.sh <cluster-name>
+    ```
 
-The ISO file will be saved as discovery.iso in the current folder. Next you can follow the steps below to add the new workers node into the cluster.
+    The ISO file will be saved as discovery.iso in the current folder, you can transfer it to your web server so that the BMC console of the new worker node can mount the ISO as virtual media. You don't need to mount the ISO manually, the script below will do. 
+
+    Then you can follow the steps below to boot the new worker node and add it into the cluster.
+
 
 - Prepare a config file like config-worker.yaml, following is an example:
 
-	```yaml
-	#kueconfig location of MCE hub instance
+  ```yaml
+  #kueconfig location of MCE hub instance
   hub:
-    kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
+    kubeconfig: ./kubeconfig-compact.yaml
 
   #name of the cluster which is going to expand
   cluster:
@@ -203,6 +204,7 @@ The ISO file will be saved as discovery.iso in the current folder. Next you can 
   iso:
     address: http://192.168.58.15/iso/compact-discovery.iso
 
+  #worker node information
   worker:
     ## it won't create nmstateconfig if dhcp is true
     dhcp: false
@@ -211,6 +213,7 @@ The ISO file will be saved as discovery.iso in the current folder. Next you can 
       - 192.168.58.15
       #- 2600:52:7:58::15
     interface: ens1f0
+    #boot mac address
     mac: de:ad:be:ff:10:33
     ipv4:
       enabled: true
@@ -222,29 +225,337 @@ The ISO file will be saved as discovery.iso in the current folder. Next you can 
       ip: 2600:52:7:58::58
       prefix: 64
       gateway: 2600:52:7:58::1
+    #bmc info of worker node
     bmc:
       address: 192.168.58.15:8080
       username: Administrator
       password: dummy
+      #optional, specify it if sushy-tools is being used as BMC emulator
       kvm_uuid: 22222222-1111-1111-0000-000000000003
 
-	```
+  ```
 
 
-- Add the worker into the MCE and target cluster
-
-	```shell
-  $ cd worker
-  $ ./add.sh config-compact.yaml
-
-	```
-  
-  The script will boot the new worker node from the discovery image and start the deployment, following is an execution sample:
+- Add the worker into the cluster
 
   ```shell
-  $ ./add.sh config-worker1.yaml
-  
+  $ cd worker
+  $ ./add.sh config-compact.yaml   
   ```
+  
+  The script will boot the new worker node from the discovery ISO and start the OpenShift deployment, Following is an execution sample:
+ 
+  ```shell
+  $ ./add.sh config-worker1.yaml 
+  Worker node uses static IP, will create nmstateconfig
+  ---
+  apiVersion: agent-install.openshift.io/v1beta1
+  kind: NMStateConfig
+  metadata:
+  labels:
+  infraenvs.agent-install.openshift.io: compact
+  name: worker1.compact.outbound.vz.bos2.lab
+  namespace: compact
+  spec:
+  interfaces:
+  - macAddress: de:ad:be:ff:10:33
+    name: ens1f0
+  
+  config:
+  dns-resolver:
+  config:
+  server:
+  - 192.168.58.15
+  
+      interfaces:
+      - name: ens1f0
+        type: ethernet
+        state: up
+        mac-address: de:ad:be:ff:10:33
+        ipv4:
+          address:
+          - ip: 192.168.58.33
+            prefix-length: 25
+          enabled: true
+          dhcp: false
+        
+      routes:
+        config:
+        - destination: 0.0.0.0/0
+          next-hop-address: 192.168.58.1
+          next-hop-interface: ens1f0
+  
+  
+  nmstateconfig.agent-install.openshift.io/worker1.compact.outbound.vz.bos2.lab unchanged
+  -------------------------------
+  Power off server.
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+  -------------------------------
+  
+  204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+  -------------------------------
+  
+  Insert Virtual Media: http://192.168.58.15/iso/compact-discovery.iso
+  204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+  -------------------------------
+  
+  Virtual Media Status:
+  {
+  "@odata.type": "#VirtualMedia.v1_4_0.VirtualMedia",
+  "Id": "Cd",
+  "Name": "Virtual CD",
+  "MediaTypes": [
+  "CD",
+  "DVD"
+  ],
+  "Image": "compact-discovery.iso",
+  "ImageName": "",
+  "ConnectedVia": "URI",
+  "Inserted": true,
+  "WriteProtected": true,
+  "Actions": {
+  "#VirtualMedia.EjectMedia": {
+  "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia"
+  },
+  "#VirtualMedia.InsertMedia": {
+  "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia"
+  },
+  "Oem": {}
+  },
+  "UserName": "",
+  "Password": "",
+  "Certificates": {
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Certificates"
+  },
+  "VerifyCertificate": false,
+  "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd",
+  "@Redfish.Copyright": "Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
+  }
+  -------------------------------
+  
+  Boot node from Virtual Media Once
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003
+  -------------------------------
+  
+  Power on server.
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+  
+  -------------------------------
+  Node is booting from virtual media mounted with http://192.168.58.15/iso/compact-discovery.iso, check your BMC console to monitor the progress.
+  
+  
+  Node booting.
+  
+  No resources found in compact namespace.
+  No resources found in compact namespace.
+  No resources found in compact namespace.
+  22222222-1111-1111-0000-000000000003             false      auto-assign   
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+  -------------------------------
+  Installation in progress: completed /100
+  Installation in progress: completed /100
+  Installation in progress: completed 11/100
+  Installation in progress: completed 33/100
+  Installation in progress: completed 55/100
+  Installation in progress: completed 55/100
+  Installation completed.
+  NAME                                   STATUS   ROLES                         AGE    VERSION
+  master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   96m    v1.25.11+1485cc9
+  master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   115m   v1.25.11+1485cc9
+  master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   116m   v1.25.11+1485cc9
+  worker1.compact.outbound.vz.bos2.lab   Ready    worker                        65s    v1.25.11+1485cc9
+  ```
+
 ###  Replace a master node
 
-TODO
+- Download the discovery ISO:
+
+    ```shell
+    $ cd scale
+    ./download-iso.sh <cluster-name>
+    ```
+
+  The ISO file will be saved as discovery.iso in the current folder, you can transfer it to your web server so that the BMC console of the new master node can mount the ISO as virtual media. You don't need to mount the ISO manually, the script below will do.
+
+  Then you can follow the steps below to boot the new master node and add it into the cluster.
+
+
+- Prepare a config file like config-master.yaml, following is an example:
+
+  ```yaml
+  #kueconfig location of MCE hub instance
+  hub:
+    kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
+  
+  #name of the cluster which is going to expand
+  cluster:
+    name: compact
+  
+  #where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
+  iso:
+    address: http://192.168.58.15/iso/compact-discovery.iso
+  
+  #master node information
+  master:
+    replaced: master3.compact.outbound.vz.bos2.lab
+    #it won't create nmstateconfig if dhcp is true
+    dhcp: false
+    hostname: master0.compact.outbound.vz.bos2.lab
+    dns:
+      - 192.168.58.15
+      #- 2600:52:7:58::15
+    interface: ens1f0
+    mac: de:ad:be:ff:10:34
+    ipv4:
+      enabled: true
+      ip: 192.168.58.34
+      prefix: 25
+      gateway: 192.168.58.1
+    ipv6:
+      enabled: false
+      ip: 2600:52:7:58::58
+      prefix: 64
+      gateway: 2600:52:7:58::1
+    bmc:
+      address: 192.168.58.15:8080
+      username: Administrator
+      password: dummy
+      kvm_uuid: 22222222-1111-1111-0000-000000000004
+  
+  ```
+  
+- Add a master into the cluster
+
+  ```shell
+  $ cd master
+  $ ./add.sh <config-file>
+  ```
+
+  The script will boot the new master node from the discovery ISO and start the OpenShift deployment, Following is an execution sample:
+
+  ```shell
+  $ ./add.sh config-master0.yaml
+  Master node uses static IP, will create nmstateconfig
+  ---
+  apiVersion: agent-install.openshift.io/v1beta1
+  kind: NMStateConfig
+  metadata:
+  labels:
+  infraenvs.agent-install.openshift.io: compact
+  name: master0.compact.outbound.vz.bos2.lab
+  namespace: compact
+  spec:
+  interfaces:
+  - macAddress: de:ad:be:ff:10:34
+    name: ens1f0
+  
+  config:
+  dns-resolver:
+  config:
+  server:
+  - 192.168.58.15
+  
+      interfaces:
+      - name: ens1f0
+        type: ethernet
+        state: up
+        mac-address: de:ad:be:ff:10:34
+        ipv4:
+          address:
+          - ip: 192.168.58.34
+            prefix-length: 25
+          enabled: true
+          dhcp: false
+        
+      routes:
+        config:
+        - destination: 0.0.0.0/0
+          next-hop-address: 192.168.58.1
+          next-hop-interface: ens1f0
+  
+  
+  nmstateconfig.agent-install.openshift.io/master0.compact.outbound.vz.bos2.lab created
+  -------------------------------
+  Power off server.
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000004/Actions/ComputerSystem.Reset
+  -------------------------------
+  
+  204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+  -------------------------------
+  
+  Insert Virtual Media: http://192.168.58.15/iso/compact-discovery.iso
+  204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+  -------------------------------
+  
+  Virtual Media Status:
+  {
+  "@odata.type": "#VirtualMedia.v1_4_0.VirtualMedia",
+  "Id": "Cd",
+  "Name": "Virtual CD",
+  "MediaTypes": [
+  "CD",
+  "DVD"
+  ],
+  "Image": "compact-discovery.iso",
+  "ImageName": "",
+  "ConnectedVia": "URI",
+  "Inserted": true,
+  "WriteProtected": true,
+  "Actions": {
+  "#VirtualMedia.EjectMedia": {
+  "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia"
+  },
+  "#VirtualMedia.InsertMedia": {
+  "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia"
+  },
+  "Oem": {}
+  },
+  "UserName": "",
+  "Password": "",
+  "Certificates": {
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd/Certificates"
+  },
+  "VerifyCertificate": false,
+  "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000004/VirtualMedia/Cd",
+  "@Redfish.Copyright": "Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
+  }
+  -------------------------------
+  
+  Boot node from Virtual Media Once
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000004
+  -------------------------------
+  
+  Power on server.
+  204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000004/Actions/ComputerSystem.Reset
+  
+  -------------------------------
+  Node is booting from virtual media mounted with http://192.168.58.15/iso/compact-discovery.iso, check your BMC console to monitor the progress.
+  
+  
+  Node booting.
+  
+  22222222-1111-1111-0000-000000000004             false      auto-assign   
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000004 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000004 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000004 patched
+  agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000004 patched
+  -------------------------------
+  Installation in progress: completed /100
+  Installation in progress: completed /100
+  Installation in progress: completed 42/100
+  Installation in progress: completed 57/100
+  Installation in progress: completed 57/100
+  Installation completed.
+  NAME                                   STATUS   ROLES                         AGE     VERSION
+  master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   65s     v1.25.11+1485cc9
+  master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   6h46m   v1.25.11+1485cc9
+  master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   7h6m    v1.25.11+1485cc9
+  master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   7h6m    v1.25.11+1485cc9
+  worker1.compact.outbound.vz.bos2.lab   Ready    worker                        5h11m   v1.25.11+1485cc9
+  
+  ```

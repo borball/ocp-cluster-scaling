@@ -40,8 +40,8 @@ fi
 
 #boot the node
 bmc_address=$(yq '.master.bmc.address' $config_file)
-bmc_username=$(yq '.master.bmc.address' $config_file)
-bmc_password=$(yq '.master.bmc.address' $config_file)
+bmc_username=$(yq '.master.bmc.username' $config_file)
+bmc_password=$(yq '.master.bmc.password' $config_file)
 iso_image=$(yq '.iso.address' $config_file)
 kvm_uuid=$(yq '.master.bmc.kvm_uuid' $config_file)
 
@@ -81,25 +81,42 @@ done
 echo "Installation completed."
 
 oc get nodes
+echo
 
 #create bmh and machine
 infra_id=$(oc get -n $namespace ClusterDeployment -o jsonpath={..infraID})
-export machine_name="$infra_id-master-9"
-replaced_master=$(yq '.master.replaced' $config_file)
-export boot_mode=$(oc get bmh -n openshift-machine-api $replaced_master -o jsonpath={.spec.bootMode})
 
-jinja2 ./baremetal-host.yaml.j2 $config_file 
+new_hostname_full=$(yq '.master.hostname' $config_file)
+new_hostname_short=$(echo $new_hostname_full |cut -d '.' -f 1)
+
+export new_machine_name="$infra_id-$new_hostname_short"
+
+replaced_master_hostname=$(yq '.master.replaced' $config_file)
+export boot_mode=$(oc get bmh -n openshift-machine-api $replaced_master_hostname -o jsonpath={.spec.bootMode})
+replaced_machine_name=$(oc get bmh -n openshift-machine-api $replaced_master_hostname -o jsonpath={.spec.consumerRef.name})
+
 jinja2 ./baremetal-host.yaml.j2 $config_file | oc apply -f -
 
-jinja2 ./machine.yaml.j2 $config_file
 jinja2 ./machine.yaml.j2 $config_file | oc apply -f -
 
-new_host=$(yq '.master.hostname' $config_file)
-./link-machine-and-node.sh $machine_name $new_host
 
-oc rsh -n openshift-etcd etcd-$new_host etcdctl member list -w table
+./link-machine-and-node.sh $new_machine_name $new_hostname_full
 
-#oc delete bmh -n openshift-machine-api $replaced_master
-#oc delete machine -n openshift-machine-api compact-84mqw-master-2
+etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running -o jsonpath="{.items[0].metadata.name}")
 
-#oc get nodes
+oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
+
+oc delete bmh -n openshift-machine-api $replaced_master_hostname
+oc delete machine -n openshift-machine-api $replaced_machine_name
+
+etcd_delete_member=$(oc rsh -n openshift-etcd $etcd_pod etcdctl member list |grep $replaced_master_hostname |cut -d ',' -f 1)
+
+oc rsh -n openshift-etcd $etcd_pod etcdctl member remove $etcd_delete_member
+oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
+
+echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
+
+echo "You can type ctrl+c to stop the watch below:"
+
+oc get co -w
+

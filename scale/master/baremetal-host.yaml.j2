@@ -13,7 +13,7 @@ spec:
   consumerRef:
     apiVersion: machine.openshift.io/v1beta1
     kind: Machine
-    name: {{ environ('machine_name') }}
+    name: {{ environ('new_machine_name') }}
     namespace: openshift-machine-api
   customDeploy:
     method: install_coreos
