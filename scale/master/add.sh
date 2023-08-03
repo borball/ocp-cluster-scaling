@@ -27,27 +27,30 @@ export KUBECONFIG=$kubeconfig
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
 
-#create nmstateconfig for static IP
+##create nmstateconfig for static IP
 if [ "true" = "$(yq '.master.dhcp' $config_file)" ]; then
   echo "Master node uses DHCP, will not create nmstateconfig"
 else
   echo "Master node uses static IP, will create nmstateconfig"
 
-  jinja2 ./nmstate.yaml.j2 $config_file 
-  jinja2 ./nmstate.yaml.j2 $config_file | oc apply -f -
+  jinja2 ./templates/nmstate.yaml.j2 $config_file
+  jinja2 ./templates/nmstate.yaml.j2 $config_file | oc apply -f -
 fi
-
 
 #boot the node
 bmc_address=$(yq '.master.bmc.address' $config_file)
 bmc_username=$(yq '.master.bmc.username' $config_file)
 bmc_password=$(yq '.master.bmc.password' $config_file)
 iso_image=$(yq '.iso.address' $config_file)
-kvm_uuid=$(yq '.master.bmc.kvm_uuid' $config_file)
+kvm_uuid=$(yq '.master.bmc.kvm_uuid // "" ' $config_file)
 
-../boot-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
+if [ ! -z $kvm_uuid ]; then
+  ../boot-from-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
+else
+  ../boot-from-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image
+fi
 
-
+#TODO: check if an older agent already existed
 until ( oc get agent -n $namespace |grep -m 1 "auto-assign" ); do
   sleep 5
 done
@@ -81,6 +84,7 @@ done
 echo "Installation completed."
 
 oc get nodes
+
 echo
 
 #create bmh and machine
@@ -95,24 +99,23 @@ replaced_master_hostname=$(yq '.master.replaced' $config_file)
 export boot_mode=$(oc get bmh -n openshift-machine-api $replaced_master_hostname -o jsonpath={.spec.bootMode})
 replaced_machine_name=$(oc get bmh -n openshift-machine-api $replaced_master_hostname -o jsonpath={.spec.consumerRef.name})
 
-jinja2 ./baremetal-host.yaml.j2 $config_file | oc apply -f -
+jinja2 ./templates/baremetal-host.yaml.j2 $config_file | oc apply -f -
 
-jinja2 ./machine.yaml.j2 $config_file | oc apply -f -
+jinja2 ./templates/machine.yaml.j2 $config_file | oc apply -f -
 
 
 ./link-machine-and-node.sh $new_machine_name $new_hostname_full
 
-etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running -o jsonpath="{.items[0].metadata.name}")
+#find a healthy one
+etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running,metadata.name!=etcd-$replaced_master_hostname,metadata.name!=etcd-$new_hostname_full -o jsonpath="{.items[0].metadata.name}")
 
+oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
+etcd_delete_member=$(oc rsh -n openshift-etcd $etcd_pod etcdctl member list |grep $replaced_master_hostname |cut -d ',' -f 1)
+oc rsh -n openshift-etcd $etcd_pod etcdctl member remove $etcd_delete_member
 oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
 
 oc delete bmh -n openshift-machine-api $replaced_master_hostname
 oc delete machine -n openshift-machine-api $replaced_machine_name
-
-etcd_delete_member=$(oc rsh -n openshift-etcd $etcd_pod etcdctl member list |grep $replaced_master_hostname |cut -d ',' -f 1)
-
-oc rsh -n openshift-etcd $etcd_pod etcdctl member remove $etcd_delete_member
-oc rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
 
 echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
 

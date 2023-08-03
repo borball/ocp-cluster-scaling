@@ -27,6 +27,8 @@ update-ca-trust
 #Due to some bugs https://issues.redhat.com/browse/MGMT-14923, the isoDownloadURL is always pointing to the current latest OCP version(4.13 at this point). 
 #Need to manually change to 4.12 to avoid issues
 isoDownloadURL=$(oc get infraenv -n $cluster -o json|jq -r '.items[0].status.isoDownloadURL')
+
+#fix bug
 isoDownloadURL=${isoDownloadURL//4.13/4.12}
 
 wget -O discovery.iso "$isoDownloadURL"

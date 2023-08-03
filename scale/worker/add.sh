@@ -33,21 +33,24 @@ if [ "true" = "$(yq '.worker.dhcp' $config_file)" ]; then
 else
   echo "Worker node uses static IP, will create nmstateconfig"
 
-  jinja2 ./nmstate.yaml.j2 $config_file 
-  jinja2 ./nmstate.yaml.j2 $config_file | oc apply -f -
+  jinja2 ./templates/nmstate.yaml.j2 $config_file
+  jinja2 ./templates/nmstate.yaml.j2 $config_file | oc apply -f -
 fi
-
 
 #boot the node
 bmc_address=$(yq '.worker.bmc.address' $config_file)
 bmc_username=$(yq '.master.bmc.username' $config_file)
 bmc_password=$(yq '.master.bmc.password' $config_file)
 iso_image=$(yq '.iso.address' $config_file)
-kvm_uuid=$(yq '.worker.bmc.kvm_uuid' $config_file)
+kvm_uuid=$(yq '.worker.bmc.kvm_uuid // "" ' $config_file)
 
-../boot-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
+if [ ! -z $kvm_uuid ]; then
+  ../boot-from-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image $kvm_uuid
+else
+  ../boot-from-iso.sh $bmc_address $bmc_username:$bmc_password $iso_image
+fi
 
-
+#TODO: check if an older agent already existed
 until ( oc get agent -n $namespace |grep -m 1 "auto-assign" ); do
   sleep 5
 done

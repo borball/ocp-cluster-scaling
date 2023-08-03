@@ -2,9 +2,9 @@
 
 # oc get nodes
 NAME                                   STATUS   ROLES                         AGE    VERSION
-master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   8m2s   v1.25.11+1485cc9
-master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   27m    v1.25.11+1485cc9
-master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   28m    v1.25.11+1485cc9
+master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   117m   v1.25.11+1485cc9
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   138m   v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   138m   v1.25.11+1485cc9
 
 # oc apply -k lvm/operator/
 namespace/openshift-storage created
@@ -39,104 +39,115 @@ clusterdeployment.hive.openshift.io/compact created
 
 
 # oc get mcl
-NAME            HUB ACCEPTED   MANAGED CLUSTER URLS                            JOINED   AVAILABLE   AGE
-compact         true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        7m27s
-local-cluster   true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        28m
+NAME      HUB ACCEPTED   MANAGED CLUSTER URLS                            JOINED   AVAILABLE   AGE
+compact   true           https://api.compact.outbound.vz.bos2.lab:6443   True     True        39s
 
-# ./add.sh config-worker1.yaml 
+# ./download-iso.sh compact
+--2023-08-03 17:00:38--  https://assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab/images/536f0063-45f9-4552-834e-3b60e139c982?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiI1MzZmMDA2My00NWY5LTQ1NTItODM0ZS0zYjYwZTEzOWM5ODIifQ.n-kkKHXvG-k3tpNOBcXTtM8jIhezKp2EZEApHnpN5d9MxVGmke84KJkaA60XQvtBECHcioUu_HmjjO-rr3hubQ&arch=x86_64&type=minimal-iso&version=4.12
+Resolving assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab (assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab)... 192.168.58.91
+Connecting to assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab (assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab)|192.168.58.91|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 109238272 (104M) [application/octet-stream]
+Saving to: ‘discovery.iso’
+
+discovery.iso                     100%[=============================================================>] 104.18M   623MB/s    in 0.2s
+
+# cp discovery.iso /var/www/html/iso/compact-discovery.iso
+
+# ./add.sh config-add-worker0.yaml
 Worker node uses static IP, will create nmstateconfig
 ---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: NMStateConfig
 metadata:
-  labels:
-    infraenvs.agent-install.openshift.io: compact
-  name: worker1.compact.outbound.vz.bos2.lab
-  namespace: compact
+labels:
+  infraenvs.agent-install.openshift.io: compact
+name: worker0.compact.outbound.vz.bos2.lab
+namespace: compact
 spec:
+interfaces:
+- macAddress: de:ad:be:ff:10:40
+  name: ens1f0
+
+config:
+  dns-resolver:
+    config:
+      server:
+      - 192.168.58.15
+
   interfaces:
-  - macAddress: de:ad:be:ff:10:33
-    name: ens1f0
+  - name: ens1f0
+    type: ethernet
+    state: up
+    mac-address: de:ad:be:ff:10:40
+    ipv4:
+      address:
+      - ip: 192.168.58.40
+        prefix-length: 25
+      enabled: true
+      dhcp: false
 
-  config:
-    dns-resolver:
-      config:
-        server:
-        - 192.168.58.15
-        
-    interfaces:
-    - name: ens1f0
-      type: ethernet
-      state: up
-      mac-address: de:ad:be:ff:10:33
-      ipv4:
-        address:
-        - ip: 192.168.58.33
-          prefix-length: 25
-        enabled: true
-        dhcp: false
-      
-    routes:
-      config:
-      - destination: 0.0.0.0/0
-        next-hop-address: 192.168.58.1
-        next-hop-interface: ens1f0
-      
+  routes:
+    config:
+    - destination: 0.0.0.0/0
+      next-hop-address: 192.168.58.1
+      next-hop-interface: ens1f0
 
-nmstateconfig.agent-install.openshift.io/worker1.compact.outbound.vz.bos2.lab unchanged
+
+nmstateconfig.agent-install.openshift.io/worker0.compact.outbound.vz.bos2.lab created
 -------------------------------
 Power off server.
-204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000010/Actions/ComputerSystem.Reset
 -------------------------------
 
-204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
+204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
 -------------------------------
 
 Insert Virtual Media: http://192.168.58.15/iso/compact-discovery.iso
-204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
 -------------------------------
 
-Virtual Media Status: 
+Virtual Media Status:
 {
-  "@odata.type": "#VirtualMedia.v1_4_0.VirtualMedia",
-  "Id": "Cd",
-  "Name": "Virtual CD",
-  "MediaTypes": [
-    "CD",
-    "DVD"
-  ],
-  "Image": "compact-discovery.iso",
-  "ImageName": "",
-  "ConnectedVia": "URI",
-  "Inserted": true,
-  "WriteProtected": true,
-  "Actions": {
-    "#VirtualMedia.EjectMedia": {
-      "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia"
-    },
-    "#VirtualMedia.InsertMedia": {
-      "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia"
-    },
-    "Oem": {}
+"@odata.type": "#VirtualMedia.v1_4_0.VirtualMedia",
+"Id": "Cd",
+"Name": "Virtual CD",
+"MediaTypes": [
+  "CD",
+  "DVD"
+],
+"Image": "compact-discovery.iso",
+"ImageName": "",
+"ConnectedVia": "URI",
+"Inserted": true,
+"WriteProtected": true,
+"Actions": {
+  "#VirtualMedia.EjectMedia": {
+    "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia"
   },
-  "UserName": "",
-  "Password": "",
-  "Certificates": {
-    "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Certificates"
+  "#VirtualMedia.InsertMedia": {
+    "target": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia"
   },
-  "VerifyCertificate": false,
-  "@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
-  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd",
-  "@Redfish.Copyright": "Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
+  "Oem": {}
+},
+"UserName": "",
+"Password": "",
+"Certificates": {
+  "@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd/Certificates"
+},
+"VerifyCertificate": false,
+"@odata.context": "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
+"@odata.id": "/redfish/v1/Managers/22222222-1111-1111-0000-000000000010/VirtualMedia/Cd",
+"@Redfish.Copyright": "Copyright 2014-2017 Distributed Management Task Force, Inc. (DMTF). For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright."
 }
 -------------------------------
 
 Boot node from Virtual Media Once
-204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000010
 -------------------------------
 
 Power on server.
-204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000010/Actions/ComputerSystem.Reset
 
 -------------------------------
 Node is booting from virtual media mounted with http://192.168.58.15/iso/compact-discovery.iso, check your BMC console to monitor the progress.
@@ -153,11 +164,13 @@ No resources found in compact namespace.
 No resources found in compact namespace.
 No resources found in compact namespace.
 No resources found in compact namespace.
-22222222-1111-1111-0000-000000000003             false      auto-assign   
-agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
-agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
-agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
-agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000003 patched
+No resources found in compact namespace.
+No resources found in compact namespace.
+22222222-1111-1111-0000-000000000010             false      auto-assign
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000010 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000010 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000010 patched
+agent.agent-install.openshift.io/22222222-1111-1111-0000-000000000010 patched
 -------------------------------
 Installation in progress: completed /100
 Installation in progress: completed /100
@@ -168,16 +181,52 @@ Installation in progress: completed /100
 Installation in progress: completed /100
 Installation in progress: completed /100
 Installation in progress: completed /100
-Installation in progress: completed 11/100
+Installation in progress: completed /100
+Installation in progress: completed /100
+Installation in progress: completed /100
 Installation in progress: completed 33/100
 Installation in progress: completed 33/100
 Installation in progress: completed 33/100
 Installation in progress: completed 33/100
 Installation in progress: completed 55/100
 Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 88/100
+Installation in progress: completed 88/100
+Installation in progress: completed 88/100
+Installation in progress: completed 88/100
 Installation completed.
+
 NAME                                   STATUS   ROLES                         AGE    VERSION
-master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   96m    v1.25.11+1485cc9
-master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   115m   v1.25.11+1485cc9
-master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   116m   v1.25.11+1485cc9
-worker1.compact.outbound.vz.bos2.lab   Ready    worker                        65s    v1.25.11+1485cc9
+master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   19h    v1.25.11+1485cc9
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   19h    v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   19h    v1.25.11+1485cc9
+worker0.compact.outbound.vz.bos2.lab   Ready    worker                        2m9s   v1.25.11+1485cc9
