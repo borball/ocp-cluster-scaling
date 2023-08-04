@@ -100,11 +100,23 @@ export boot_mode=$(oc get bmh -n openshift-machine-api $replaced_master_hostname
 replaced_machine_name=$(oc get bmh -n openshift-machine-api $replaced_master_hostname -o jsonpath={.spec.consumerRef.name})
 
 jinja2 ./templates/baremetal-host.yaml.j2 $config_file | oc apply -f -
-
 jinja2 ./templates/machine.yaml.j2 $config_file | oc apply -f -
 
-
 ./link-machine-and-node.sh $new_machine_name $new_hostname_full
+
+sleep 30
+
+# node is in ready status
+if [ "True" = $(oc get nodes $replaced_master_hostname -o jsonpath="{.status.conditions[?(@.type=='Ready')].status}") ]; then
+  read -p "Please shutdown the master node which is going to be replace. continue if it's been down(y/n)?" choice
+  case "$choice" in
+    y|Y ) echo "yes";;
+    n|N ) echo "no";;
+    * ) echo "invalid";;
+  esac
+fi
+
+echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
 
 #find a healthy one
 etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running,metadata.name!=etcd-$replaced_master_hostname,metadata.name!=etcd-$new_hostname_full -o jsonpath="{.items[0].metadata.name}")
