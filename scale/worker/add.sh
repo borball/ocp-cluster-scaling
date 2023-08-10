@@ -25,12 +25,12 @@ kubeconfig_hub=$(yq '.hub.kubeconfig' $config_file)
 kubeconfig_spoke=$(yq '.cluster.kubeconfig' $config_file)
 
 ocs() {
-    och --kubeconfig $kubeconfig_spoke "$@"
+  oc --kubeconfig $kubeconfig_spoke "$@"
 }
 export -f ocs
 
 och() {
-    och --kubeconfig $kubeconfig_hub "$@"
+  oc --kubeconfig $kubeconfig_hub "$@"
 }
 export -f och
 
