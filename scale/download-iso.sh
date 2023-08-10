@@ -3,11 +3,11 @@
 # Download discovery iso
 
 usage(){
-  echo "Usage: $0 <cluster-name>"
-  echo "Example: $0 compact"
+  echo "Usage: $0 <hub-kubeconfig> <cluster-name>"
+  echo "Example: $0 compact-kubeconfig.yaml compact"
 }
 
-if [ $# -lt 1 ]
+if [ $# -lt 2 ]
 then
   usage
   exit
@@ -19,14 +19,15 @@ then
   exit
 fi
 
-cluster=$1
+kubeconfig=$1
+cluster=$2
 
-oc get secret router-ca -o json -n openshift-ingress-operator |jq -r ".data.\"tls.crt\""|base64 -d > /etc/pki/ca-trust/source/anchors/$cluster.crt
+oc --kubeconfig $kubeconfig get secret router-ca -o json -n openshift-ingress-operator |jq -r ".data.\"tls.crt\""|base64 -d > /etc/pki/ca-trust/source/anchors/$cluster.crt
 update-ca-trust
 
 #Due to some bugs https://issues.redhat.com/browse/MGMT-14923, the isoDownloadURL is always pointing to the current latest OCP version(4.13 at this point). 
 #Need to manually change to 4.12 to avoid issues
-isoDownloadURL=$(oc get infraenv -n $cluster -o json|jq -r '.items[0].status.isoDownloadURL')
+isoDownloadURL=$(oc --kubeconfig $kubeconfig get infraenv -n $cluster -o json|jq -r '.items[0].status.isoDownloadURL')
 
 #fix bug
 isoDownloadURL=${isoDownloadURL//4.13/4.12}
