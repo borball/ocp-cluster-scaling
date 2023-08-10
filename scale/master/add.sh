@@ -34,7 +34,7 @@ och() {
 }
 export -f och
 
-ehco "Current cluster information"
+echo "Current cluster information"
 ocs get nodes
 ocs get clusterversion
 
