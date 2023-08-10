@@ -34,9 +34,12 @@ och() {
 }
 export -f och
 
-ehch "Current cluster information"
+echo "Current cluster information"
+echo
 ocs get nodes
+echo
 ocs get clusterversion
+echo
 
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
