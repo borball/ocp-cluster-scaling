@@ -30,12 +30,12 @@ spoke_admin=$3
 spoke_password=$4
 
 ocs() {
-    oc --kubeconfig=$kubeconfig_spoke "$@"
+    oc --kubeconfig $kubeconfig_spoke "$@"
 }
 export -f ocs
 
 och() {
-    oc --kubeconfig=$kubeconfig_spoke "$@"
+    oc --kubeconfig $kubeconfig_hub "$@"
 }
 export -f och
 
