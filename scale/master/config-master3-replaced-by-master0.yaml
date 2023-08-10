@@ -5,6 +5,7 @@ hub:
 #name of the cluster which is going to expand
 cluster:
   name: compact
+  kubeconfig: kubeconfig-compact.yaml
 
 #where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
 iso:

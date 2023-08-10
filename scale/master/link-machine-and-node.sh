@@ -7,8 +7,9 @@
 set -x
 set -e
 
-machine="$1"
-node="$2"
+kubeconfig="$1"
+machine="$2"
+node="$3"
 
 if [ -z "$machine" -o -z "$node" ]; then
     echo "Usage: $0 MACHINE NODE"
@@ -18,7 +19,7 @@ fi
 uid=$(echo $node | cut -f1 -d':')
 node_name=$(echo $node | cut -f2 -d':')
 
-oc proxy &
+oc --kubeconfig=$kubeconfig proxy &
 proxy_pid=$!
 function kill_proxy {
     kill $proxy_pid
@@ -59,9 +60,9 @@ function wait_for_json() {
 }
 wait_for_json oc_proxy "${HOST_PROXY_API_PATH}" 10 -H "Accept: application/json" -H "Content-Type: application/json"
 
-addresses=$(oc get node -n openshift-machine-api ${node_name} -o json | jq -c '.status.addresses')
+addresses=$(oc --kubeconfig=$kubeconfig get node -n openshift-machine-api ${node_name} -o json | jq -c '.status.addresses')
 
-machine_data=$(oc get machine -n openshift-machine-api -o json ${machine})
+machine_data=$(oc --kubeconfig=$kubeconfig get machine -n openshift-machine-api -o json ${machine})
 host=$(echo "$machine_data" | jq '.metadata.annotations["metal3.io/BareMetalHost"]' | cut -f2 -d/ | sed 's/"//g')
 
 if [ -z "$host" ]; then
@@ -126,4 +127,4 @@ curl -s \
      -H "Content-type: application/merge-patch+json" \
      -d "${host_patch}"
 
-oc get baremetalhost -n openshift-machine-api -o yaml "${host}"
+oc --kubeconfig=$kubeconfig get baremetalhost -n openshift-machine-api -o yaml "${host}"

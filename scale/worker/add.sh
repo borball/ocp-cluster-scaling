@@ -21,8 +21,22 @@ fi
 
 config_file=$1;
  
-kubeconfig=$(yq '.hub.kubeconfig' $config_file)
-export KUBECONFIG=$kubeconfig
+kubeconfig_hub=$(yq '.hub.kubeconfig' $config_file)
+kubeconfig_spoke=$(yq '.cluster.kubeconfig' $config_file)
+
+ocs() {
+    och --kubeconfig=$kubeconfig_spoke "$@"
+}
+export -f ocs
+
+och() {
+    och --kubeconfig=$kubeconfig_spoke "$@"
+}
+export -f och
+
+ehch "Current cluster information"
+ocs get nodes
+ocs get clusterversion
 
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
@@ -34,7 +48,7 @@ else
   echo "Worker node uses static IP, will create nmstateconfig"
 
   jinja2 ./templates/nmstate.yaml.j2 $config_file
-  jinja2 ./templates/nmstate.yaml.j2 $config_file | oc apply -f -
+  jinja2 ./templates/nmstate.yaml.j2 $config_file | och apply -f -
 fi
 
 #boot the node
@@ -51,37 +65,38 @@ else
 fi
 
 #TODO: check if an older agent already existed
-until ( oc get agent -n $namespace |grep -m 1 "auto-assign" ); do
+until ( och get agent -n $namespace |grep -m 1 "auto-assign" ); do
   sleep 5
 done
 
 worker_hostname=$(yq '.worker.hostname' $config_file)
 worker_disk=$(yq '.worker.disk // "" ' $config_file)
 
-agent_name=$(oc get agent -n $namespace -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
+agent_name=$(och get agent -n $namespace -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
 
-oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'${worker_hostname}'" }]'
-oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
+och patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'${worker_hostname}'" }]'
+och patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
 sleep 10
-oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/role", "value": "worker" }]'
+och patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/role", "value": "worker" }]'
 
 if [ ! -z $worker_disk ]; then
-  oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/installation_disk_id", "value": "'${worker_disk}'"}]'
+  och patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/installation_disk_id", "value": "'${worker_disk}'"}]'
 fi
 
 #Trigger the installation
-oc patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/clusterDeploymentName", "value": {"name": "'${cluster_name}'", "namespace": "'${namespace}'"} }]'
+och patch agent -n $namespace $agent_name --type=json --patch '[{ "op": "replace", "path": "/spec/clusterDeploymentName", "value": {"name": "'${cluster_name}'", "namespace": "'${namespace}'"} }]'
 
 echo "-------------------------------"
 
 #Monitor the installation progress
-while [[ "Done" != $(oc get agent -n $namespace $agent_name -o jsonpath='{..currentStage}') ]]; do
-  installationPercentage=$(oc get agent -n $namespace $agent_name -o jsonpath='{..installationPercentage}')
+while [[ "Done" != $(och get agent -n $namespace $agent_name -o jsonpath='{..currentStage}') ]]; do
+  installationPercentage=$(och get agent -n $namespace $agent_name -o jsonpath='{..installationPercentage}')
   echo "Installation in progress: completed $installationPercentage/100"
   sleep 15
 done
 
 echo "Installation completed."
 echo
-oc get nodes
+
+ocs get nodes
 
