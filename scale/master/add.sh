@@ -35,9 +35,11 @@ och() {
 export -f och
 
 echo "Current cluster information"
+echo
 ocs get nodes
+echo
 ocs get clusterversion
-
+echo
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
 
@@ -131,7 +133,7 @@ if [ "True" = $(ocs get nodes $replaced_master_hostname -o jsonpath="{.status.co
   esac
 fi
 
-echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
+echo "OpenShift may take a while to roll out the cluster operators on the new node."
 
 #find a healthy one
 etcd_pod=$(ocs get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running,metadata.name!=etcd-$replaced_master_hostname,metadata.name!=etcd-$new_hostname_full -o jsonpath="{.items[0].metadata.name}")
@@ -141,12 +143,13 @@ etcd_delete_member=$(ocs rsh -n openshift-etcd $etcd_pod etcdctl member list |gr
 ocs rsh -n openshift-etcd $etcd_pod etcdctl member remove $etcd_delete_member
 ocs rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
 
+#speed up the rolling out
+ocs delete -n openshift-etcd pod --all
+sleep 60
+
 ocs delete bmh -n openshift-machine-api $replaced_master_hostname
 ocs delete machine -n openshift-machine-api $replaced_machine_name
-
-echo "You can shutdown the server which shall be replaced, OpenShift may take a while to roll out the cluster operators on the new node."
-
-#ssh 192.168.58.14 'kcli stop vm vm5'
+ocs delete node $replaced_master_hostname
 
 echo "You can type ctrl+c to stop the watch below:"
 
