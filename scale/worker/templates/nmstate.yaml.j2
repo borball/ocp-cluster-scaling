@@ -19,7 +19,7 @@ spec:
         {% endfor -%}
     {% if worker.vlan is defined and worker.vlan.enabled -%}
     interfaces:
-    - name: {{ worker.interface }}
+    - name: {{ worker.vlan.name }}
       type: vlan
       state: up
       vlan:
