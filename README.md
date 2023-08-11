@@ -227,6 +227,10 @@ worker:
     ip: 2600:52:7:58::58
     prefix: 64
     gateway: 2600:52:7:58::1
+  vlan:
+    enabled: false
+    id: 58
+    name: ens1f0.58    
   #bmc info of worker node
   bmc:
     address: 192.168.58.15:8080
@@ -446,6 +450,10 @@ master:
     ip: 2600:52:7:58::33
     prefix: 64
     gateway: 2600:52:7:58::1
+  vlan:
+    enabled: false
+    id: 58
+    name: ens1f0.58    
   bmc:
     address: 192.168.58.15:8080
     username: Administrator
