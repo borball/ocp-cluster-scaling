@@ -43,11 +43,11 @@ echo
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
 
-##create nmstateconfig for static IP
+##create NMStateConfig for static IP
 if [ "true" = "$(yq '.master.dhcp' $config_file)" ]; then
-  echo "Master node uses DHCP, will not create nmstateconfig"
+  echo "New master node uses DHCP, will not create NMStateConfig CR"
 else
-  echo "Master node uses static IP, will create nmstateconfig"
+  echo "New master node uses static IP, will create NMStateConfig CR"
 
   jinja2 ./templates/nmstate.yaml.j2 $config_file
   jinja2 ./templates/nmstate.yaml.j2 $config_file | och apply -f -
@@ -143,13 +143,14 @@ etcd_delete_member=$(ocs rsh -n openshift-etcd $etcd_pod etcdctl member list |gr
 ocs rsh -n openshift-etcd $etcd_pod etcdctl member remove $etcd_delete_member
 ocs rsh -n openshift-etcd $etcd_pod etcdctl member list -w table
 
-#speed up the rolling out
-ocs delete -n openshift-etcd pod --all
-sleep 60
-
+sleep 30
 ocs delete bmh -n openshift-machine-api $replaced_master_hostname
 ocs delete machine -n openshift-machine-api $replaced_machine_name
-ocs delete node $replaced_master_hostname
+sleep 30
+
+#speed up the rolling out
+ocs delete -n openshift-etcd pod --all --force --grace-period=0
+sleep 30
 
 echo "You can type ctrl+c to stop the watch below:"
 
