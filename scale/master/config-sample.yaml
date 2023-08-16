@@ -14,9 +14,13 @@ iso:
 #master node information
 master:
   replaced: master3.compact.outbound.vz.bos2.lab
-  #it won't create nmstateconfig if dhcp is true
-  dhcp: false
   hostname: master0.compact.outbound.vz.bos2.lab
+
+  #optional, set it only if the built-in template cannot satisfy your requirement
+  #nmstate: ./nmstate-master0.yaml
+
+  #it won't create NMStateConfig if dhcp is true
+  dhcp: false
   dns:
     - 192.168.58.15
     #- 2600:52:7:58::15

@@ -44,14 +44,21 @@ echo
 export cluster_name=$(yq '.cluster.name' $config_file)
 export namespace=$cluster_name
 
-#create NMStateConfig for static IP
-if [ "true" = "$(yq '.worker.dhcp' $config_file)" ]; then
-  echo "New worker node uses DHCP, will not create NMStateConfig CR"
+nmstate=$(yq '.worker.nmstate // "" ' $config_file)
+if [ ! -z $nmstate ]; then
+  echo "Customized NMStateConfig CR provided: $nmstate"
+  och apply -f $nmstate
 else
-  echo "New worker node uses static IP, will create NMStateConfig CR"
+  #create NMStateConfig for static IP based on template
+  if [ "true" = "$(yq '.worker.dhcp' $config_file)" ]; then
+    echo "New worker node uses DHCP, will not create NMStateConfig CR"
+  else
+    echo "New worker node uses static IP, will create NMStateConfig CR"
 
-  jinja2 ./templates/nmstate.yaml.j2 $config_file
-  jinja2 ./templates/nmstate.yaml.j2 $config_file | och apply -f -
+    jinja2 ./templates/nmstate.yaml.j2 $config_file
+    jinja2 ./templates/nmstate.yaml.j2 $config_file | och apply -f -
+  fi
+
 fi
 
 #boot the node

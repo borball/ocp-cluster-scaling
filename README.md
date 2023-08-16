@@ -208,7 +208,10 @@ iso:
 
 #worker node information
 worker:
-  ## it won't create nmstateconfig if dhcp is true
+  #optional, set it only if the built-in template cannot satisfy your requirement
+  #nmstate: ./nmstate-worker0.yaml
+  
+  ## it won't create NMStateConfig if dhcp is true
   dhcp: false
   hostname: worker1.compact.outbound.vz.bos2.lab
   dns:
@@ -252,7 +255,7 @@ $ ./add.sh config-compact.yaml
 
 What the script does are:
 
-- Creating nmstateconfig CR for the new worker node if advanced network setting is being used.
+- Creating NMStateConfig CR for the new worker node if advanced network setting is being used.
 - Booting the node from the ISO location indicated in the configuration file.
 - Patching the Agent CR to set the role of the new node as ‘worker’.
 - Approving the node to be added in the InfraEnv of the cluster.
@@ -432,7 +435,11 @@ iso:
 #master node information
 master:
   replaced: master0.compact.outbound.vz.bos2.lab
-  #it won't create nmstateconfig if dhcp is true
+
+  #optional, set it only if the built-in template cannot satisfy your requirement
+  #nmstate: ./nmstate-master0.yaml
+  
+  #it won't create NMStateConfig if dhcp is true
   dhcp: false
   hostname: master3.compact.outbound.vz.bos2.lab
   dns:
@@ -473,7 +480,7 @@ $ ./add.sh <config-file>
 
 What the script does are:
 
-- Creating nmstateconfig CR for the new master node if advanced network setting is being used.
+- Creating NMStateConfig CR for the new master node if advanced network setting is being used.
 - Booting the node from the ISO location indicated in the configuration file.
 - Patching the Agent CR to set the role of the new node as ‘master’.
 - Approving the node to be added in the InfraEnv of the cluster.
