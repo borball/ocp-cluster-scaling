@@ -14,7 +14,7 @@ Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install 
 
 ### Storage
 
-Your cluster which will be used as MCE hub should have a storage solution available. Please ignore this step if you alreadh have. 
+Your cluster which will be used as MCE hub should have a storage solution available. Please ignore this step if you already have. 
 
 In this sample we  will use LVM Storage Operator.
 
@@ -72,7 +72,7 @@ lvmcluster   107s
 oc apply -k ./mce/operator
 ```
 
-Validate if the operator has been installed successully:
+Validate if the operator has been installed successfully:
 
 ```shell
 $ oc get csv,subs,ip,pod -n multicluster-engine 
