@@ -22,8 +22,9 @@ fi
 kubeconfig=$1
 cluster=$2
 
-oc --kubeconfig $kubeconfig get secret router-ca -o json -n openshift-ingress-operator |jq -r ".data.\"tls.crt\""|base64 -d > /etc/pki/ca-trust/source/anchors/$cluster.crt
-update-ca-trust
+cluster_crt=$(oc --kubeconfig $kubeconfig get secret router-ca -o json -n openshift-ingress-operator |jq -r ".data.\"tls.crt\""|base64 -d)
+sudo echo $cluster_crt > /etc/pki/ca-trust/source/anchors/$cluster.crt
+sudo update-ca-trust
 
 #Due to some bugs https://issues.redhat.com/browse/MGMT-14923, the isoDownloadURL is always pointing to the current latest OCP version(4.13 at this point). 
 #Need to manually change to 4.12 to avoid issues
