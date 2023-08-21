@@ -12,7 +12,7 @@ usage(){
   echo "Example: $0 kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr"
 }
 
-if [ $# -lt 4 ]
+if [ $# -lt 3 ]
 then
   usage
   exit
@@ -25,9 +25,9 @@ then
 fi
 
 kubeconfig_hub=$1
-kubeconfig_spoke=$2
-spoke_admin=$3
-spoke_password=$4
+kubeconfig_spoke=$1
+spoke_admin=$2
+spoke_password=$3
 
 ocs() {
   oc --kubeconfig $kubeconfig_spoke "$@"

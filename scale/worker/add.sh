@@ -21,7 +21,7 @@ fi
 
 config_file=$1;
  
-kubeconfig_hub=$(yq '.hub.kubeconfig' $config_file)
+kubeconfig_hub=$(yq '.cluster.kubeconfig' $config_file)
 kubeconfig_spoke=$(yq '.cluster.kubeconfig' $config_file)
 
 ocs() {

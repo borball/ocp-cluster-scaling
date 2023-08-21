@@ -2,19 +2,19 @@
 
 ## Ideas
 
-Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install MCE on a dedicated cluster or the target cluster which is going to expand.
+Using OpenShift Multi-Cluster Engine(MCE) to expand the OpenShift cluster. 
 
 ## Procedures
 
 - Setup storage solution if not already have
 - Install MCE Operator and create MCE hub instance
-- Import the target cluster into the MCE hub
+- Import the cluster into the MCE hub
 - Add worker with MCE
 - Add master with MCE and replace a broken(or healthy) one
 
 ### Storage
 
-Your cluster which will be used as MCE hub should have a storage solution available. Please ignore this step if you alreadh have. 
+Your cluster should have a storage solution available. Please ignore this step if you already have. 
 
 In this sample we  will use LVM Storage Operator.
 
@@ -72,7 +72,7 @@ lvmcluster   107s
 oc apply -k ./mce/operator
 ```
 
-Validate if the operator has been installed successully:
+Validate if the operator has been installed successfully:
 
 ```shell
 $ oc get csv,subs,ip,pod -n multicluster-engine 
@@ -142,22 +142,21 @@ NAME                 STATUS      AGE
 multiclusterengine   Available   109s
 
 ```
-### Import the cluster which is going to scale into MCE hub
+### Import the cluster into MCE hub
 
 ```shell
 
 $ cd import
 $ ./import.sh 
-Usage: ./import.sh [hub-cluster-kubeconfig] [spoke-cluster-kubeconfig] [spoke-cluster-admin] [spoke-cluster-password]
-If the hub-cluster-kubeconfig equals to spoke-cluster-kubeconfig, it means it is going to expand the cluster itself.
-Example: ./import.sh kubeconfig-hub.yaml kubeconfig-spoke.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr
+Usage: ./import.sh [kubeconfig] [cluster-admin] [cluster-password]
+Example: ./import.sh kubeconfig.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr
 
 ```
 
 An example:
 
 ```shell
-$ ./import.sh kubeconfig-compact.yaml kubeconfig-compact.yaml kubeadmin SEZhw-i7XZ7-LvSIG-XGTR6
+$ ./import.sh kubeconfig-compact.yaml kubeadmin SEZhw-i7XZ7-LvSIG-XGTR6
 namespace/compact created
 secret/compact-admin-kubeconfig created
 secret/compact-admin-password created
@@ -183,7 +182,7 @@ Download the discovery ISO which can be used as virtual media to boot the node a
 
 ```shell
 $ cd scale
-./download-iso.sh <hub-kubeconfig> <cluster-name>
+./download-iso.sh <kubeconfig> <cluster-name>
 ```
 
 The ISO file will be saved as discovery.iso in the current folder, you can transfer it to your HTTP server so that the new nodes can mount it as a virtual medai and boot the nodes from there.
@@ -193,10 +192,6 @@ The ISO file will be saved as discovery.iso in the current folder, you can trans
 Prepare a config file like config-worker.yaml, following is an example:
 
 ```yaml
-#kueconfig location of MCE hub instance
-hub:
-  kubeconfig: ./kubeconfig-compact.yaml
-
 #name of the cluster which is going to expand
 cluster:
   name: compact
@@ -243,8 +238,6 @@ worker:
     kvm_uuid: 22222222-1111-1111-0000-000000000003
 
 ```
-
-The hub.kubeconfig and cluster.kubeconfig can be the different if you are using another dedicated cluster to expand other clusters.
 
 Next we will add the worker into the cluster
 
@@ -419,10 +412,6 @@ worker0.compact.outbound.vz.bos2.lab   Ready    worker                        83
 Prepare a config file like config-master.yaml, following is an example:
 
 ```yaml
-#kueconfig location of MCE hub instance
-hub:
-  kubeconfig: ./kubeconfig-compact.yaml
-
 #name of the cluster which is going to expand
 cluster:
   name: compact
@@ -468,8 +457,6 @@ master:
     #Optinal, required only when the node is a KVM instance
     kvm_uuid: 22222222-1111-1111-0000-000000000003
 ```
-
-The hub.kubeconfig and cluster.kubeconfig can be the different if you are using another dedicated cluster to expand other clusters.
 
 Next we will add a new master node into the cluster and replace the existing one.
 

@@ -1,7 +1,3 @@
-#kueconfig location of MCE hub instance
-hub:
-  kubeconfig: /root/workload-enablement/sno/kubeconfig-compact.yaml
-
 #name of the cluster which is going to expand
 cluster:
   name: compact
