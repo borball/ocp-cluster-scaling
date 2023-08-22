@@ -7,7 +7,7 @@ usage(){
   echo "Example: $0 compact"
 }
 
-if [ $# -lt 2 ]
+if [ $# -lt 1 ]
 then
   usage
   exit
