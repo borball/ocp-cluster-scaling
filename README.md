@@ -2,7 +2,7 @@
 
 ## Ideas
 
-Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install MCE on a dedicated cluster or the target cluster[local-cluster](https://github.com/borball/ocp-cluster-scaling/tree/local-cluster) which is going to expand.
+Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster. Either install MCE on a dedicated cluster or the target cluster [(local-cluster)](https://github.com/borball/ocp-cluster-scaling/tree/local-cluster) which is going to expand.
 
 ## Procedures
 
