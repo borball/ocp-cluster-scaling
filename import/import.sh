@@ -7,8 +7,8 @@ if ! type "yq" > /dev/null; then
 fi
 
 usage(){
-  echo "Usage: $0 [hub-cluster-kubeconfig] [spoke-cluster-kubeconfig] [spoke-cluster-kubeadmin] [spoke-cluster-password]"
-  echo "Example: $0 kubeconfig.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr"
+  echo "Usage: $0 [spoke-cluster-kubeconfig] [spoke-cluster-kubeadmin] [spoke-cluster-password]"
+  echo "Example: $0 kubeadmin A5tmu-sy4GG-yeajX-TgfVr"
 }
 
 if [ $# -lt 3 ]
@@ -23,8 +23,8 @@ then
   exit
 fi
 
-kubeconfig_hub=$1
-kubeconfig_spoke=$1
+kubeconfig_hub=$KUBECONFIG
+kubeconfig_spoke=$KUBECONFIG
 spoke_admin=$2
 spoke_password=$3
 

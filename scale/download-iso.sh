@@ -3,8 +3,8 @@
 # Download discovery iso
 
 usage(){
-  echo "Usage: $0 <hub-kubeconfig> <cluster-name>"
-  echo "Example: $0 compact-kubeconfig.yaml compact"
+  echo "Usage: $0 <cluster-name>"
+  echo "Example: $0 compact"
 }
 
 if [ $# -lt 2 ]
@@ -19,8 +19,8 @@ then
   exit
 fi
 
-kubeconfig=$1
-cluster=$2
+kubeconfig=$KUBECONFIG
+cluster=$1
 
 cluster_crt=$(oc --kubeconfig $kubeconfig get secret router-ca -o json -n openshift-ingress-operator |jq -r ".data.\"tls.crt\""|base64 -d)
 sudo echo $cluster_crt > /etc/pki/ca-trust/source/anchors/$cluster.crt

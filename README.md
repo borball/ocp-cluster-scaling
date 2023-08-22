@@ -148,15 +148,15 @@ multiclusterengine   Available   109s
 
 $ cd import
 $ ./import.sh 
-Usage: ./import.sh [kubeconfig] [cluster-admin] [cluster-password]
-Example: ./import.sh kubeconfig.yaml kubeadmin A5tmu-sy4GG-yeajX-TgfVr
+Usage: ./import.sh [cluster-admin] [cluster-password]
+Example: ./import.sh kubeadmin A5tmu-sy4GG-yeajX-TgfVr
 
 ```
 
 An example:
 
 ```shell
-$ ./import.sh kubeconfig-compact.yaml kubeadmin SEZhw-i7XZ7-LvSIG-XGTR6
+$ ./import.sh kubeadmin SEZhw-i7XZ7-LvSIG-XGTR6
 namespace/compact created
 secret/compact-admin-kubeconfig created
 secret/compact-admin-password created
@@ -182,7 +182,7 @@ Download the discovery ISO which can be used as virtual media to boot the node a
 
 ```shell
 $ cd scale
-./download-iso.sh <kubeconfig> <cluster-name>
+./download-iso.sh <cluster-name>
 ```
 
 The ISO file will be saved as discovery.iso in the current folder, you can transfer it to your HTTP server so that the new nodes can mount it as a virtual medai and boot the nodes from there.
@@ -195,7 +195,6 @@ Prepare a config file like config-worker.yaml, following is an example:
 #name of the cluster which is going to expand
 cluster:
   name: compact
-  kubeconfig: ./kubeconfig-compact.yaml
 
 #where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
 iso:
@@ -415,7 +414,6 @@ Prepare a config file like config-master.yaml, following is an example:
 #name of the cluster which is going to expand
 cluster:
   name: compact
-  kubeconfig: ./kubeconfig-compact.yaml
 
 #where the discovery iso located, this will be mounted on the BMC of the additional worker node to do the installation
 iso:
