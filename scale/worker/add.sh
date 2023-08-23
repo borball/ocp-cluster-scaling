@@ -2,11 +2,13 @@
 # 
 # Add a worker and boot from discovery iso
 
+set -euo pipefail
+
 usage(){
   echo "Usage: $0 config.yaml [nmstate.yaml]"
-  echo "config.yaml is mandatory, nmstate.yaml is optional"
-  echo "Example: $0 config-worker1.yaml"
-  echo "Example: $0 config-worker1.yaml nmstate-worker1.yaml"
+  echo "       config.yaml is mandatory, nmstate.yaml is optional"
+  echo "Example 1: $0 config-worker1.yaml"
+  echo "Example 2: $0 config-worker1.yaml nmstate-worker1.yaml"
 }
 
 if [ $# -lt 1 ]
@@ -45,7 +47,7 @@ if [ ! -z $nmstate ]; then
 else
   #use default template
   network=$(yq '.worker.network // "" ' $config_file)
-  if [ -z $network]; then
+  if [ -z $network ]; then
     #create NMStateConfig for static IP based on template
     echo "New worker node uses DHCP, will not create NMStateConfig CR"
   else
