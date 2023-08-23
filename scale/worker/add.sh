@@ -47,7 +47,7 @@ if [ ! -z $nmstate ]; then
 else
   #use default template
   network=$(yq '.worker.network // "" ' $config_file)
-  if [ -z $network ]; then
+  if [ -z "$network" ]; then
     #create NMStateConfig for static IP based on template
     echo "New worker node uses DHCP, will not create NMStateConfig CR"
   else
