@@ -13,8 +13,8 @@ spec:
   clusterMetadata:
     adminKubeconfigSecretRef:
       name: {{ environ('cluster_name') }}-admin-kubeconfig
-    adminPasswordSecretRef:
-      name: {{ environ('cluster_name') }}-admin-password
+    #adminPasswordSecretRef:
+      #name: {{ environ('cluster_name') }}-admin-password
     clusterID: {{ environ('cluster_id') }}
     infraID: {{ environ('infra_id') }}
   clusterName: {{ environ('cluster_name') }}
