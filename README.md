@@ -239,16 +239,19 @@ node:
 
 You can set the node.role as 'worker' if the new node is a worker. set it as 'master' if the new node is a master.
 
-If the new node network is simple enough like DHCP or static IPv4/Ipv6 with/without vLan, you can simply set the network information inside the config.yaml under node.network, a NMStateConfig will be created automatically based on a default template inside [nmstate.yaml.j2](./templates/nmstate.yaml.j2). 
+If the new node network is simple enough like DHCP or static IPv4/Ipv6 with/without vLan, you can simply set the network information inside the config.yaml under node.network, a NMStateConfig will be created automatically based on a default template inside [nmstate.yaml.j2](./scale/templates/nmstate.yaml.j2). 
 
 If the default template cannot meet your lab situation, a NMStateConfig CR such as nm-state-worker0.yaml shall be prepared, reference of: [NMStateConfig CRD](https://github.com/openshift/assisted-service/blob/master/config/crd/bases/agent-install.openshift.io_nmstateconfigs.yaml).
 
 Next we will add the node into the cluster.
 
 ```shell
-./add-node.sh config-worker0.yaml
+cd scale
 ```
 
+```shell
+./add-node.sh config-worker0.yaml
+```
 Or: 
 
 ```shell
@@ -289,7 +292,7 @@ What the script does are:
 - Monitoring OpenShift to roll out the cluster operators and platform components to the new node.
 
 
-Following is an execution sample:
+Following are some execution logs:
 
 - [Replace a healthy master](samples/replace-healthy-master.md)
 - [Replace a unhealthy master](samples/replace-unhealthy-master.md)
