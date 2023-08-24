@@ -1,6 +1,8 @@
 #worker node information
-worker:
+node:
   hostname: worker0.compact.outbound.vz.bos2.lab
+  #worker or master
+  role: worker
   #disk is optional
   disk: /dev/sda
 

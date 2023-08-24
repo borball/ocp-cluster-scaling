@@ -4,7 +4,7 @@ kind: Machine
 metadata:
   annotations:
     machine.openshift.io/instance-state: externally provisioned
-    metal3.io/BareMetalHost: openshift-machine-api/{{ master.hostname }}
+    metal3.io/BareMetalHost: openshift-machine-api/{{ environ('new_master_hostname') }}
   finalizers:
   - machine.machine.openshift.io
   labels:

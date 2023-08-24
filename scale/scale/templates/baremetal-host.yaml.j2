@@ -1,14 +1,14 @@
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: {{ master.hostname }}
+  name: {{ environ('new_master_hostname') }}
   namespace: openshift-machine-api
 spec:
   automatedCleaningMode: metadata
   bmc:
     address: ""
     credentialsName: ""
-  bootMACAddress: {{ master.mac }}
+  bootMACAddress: 00:00:00:00:00:02
   bootMode: {{ environ('boot_mode') }}
   consumerRef:
     apiVersion: machine.openshift.io/v1beta1
