@@ -17,6 +17,8 @@ then
   exit
 fi
 
+BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
 export cluster_name=$(oc get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
 export namespace=$cluster_name
 export pull_secret=$(oc get secrets -n openshift-config pull-secret -o jsonpath={.data.\\.dockerconfigjson})
@@ -35,13 +37,13 @@ export infra_id=$(oc get infrastructure cluster -o json | jq .status.infrastruct
 #export password=$(echo $spoke_password |base64 -w 0)
 export kubeconfig_secret=$(oc get secrets -n openshift-kube-apiserver node-kubeconfigs -o jsonpath={..lb-ext\\.kubeconfig})
 
-jinja2 ./templates/ns.yaml.j2 > ./ns.yaml
-jinja2 ./templates/pull-secret.yaml.j2 > ./pull-secret.yaml
-jinja2 ./templates/infraenv.yaml.j2 > ./infraenv.yaml
-jinja2 ./templates/agent-cluster-install.yaml.j2 > ./agent-cluster-install.yaml
-#jinja2 ./templates/kubeadmin-passwd-secret.yaml.j2 > ./kubeadmin-passwd-secret.yaml
-jinja2 ./templates/kubeconfig-secret.yaml.j2 > ./kubeconfig-secret.yaml
-jinja2 ./templates/cluster-deployment.yaml.j2 > ./cluster-deployment.yaml
-jinja2 ./templates/managed-cluster.yaml.j2 > ./managed-cluster.yaml
+jinja2 "$BASEDIR"/templates/ns.yaml.j2 > "$BASEDIR"/ns.yaml
+jinja2 "$BASEDIR"/templates/pull-secret.yaml.j2 > "$BASEDIR"/pull-secret.yaml
+jinja2 "$BASEDIR"/templates/infraenv.yaml.j2 > "$BASEDIR"/infraenv.yaml
+jinja2 "$BASEDIR"/templates/agent-cluster-install.yaml.j2 > "$BASEDIR"/agent-cluster-install.yaml
+#jinja2 "$BASEDIR"/templates/kubeadmin-passwd-secret.yaml.j2 > "$BASEDIR"/kubeadmin-passwd-secret.yaml
+jinja2 "$BASEDIR"/templates/kubeconfig-secret.yaml.j2 > "$BASEDIR"/kubeconfig-secret.yaml
+jinja2 "$BASEDIR"/templates/cluster-deployment.yaml.j2 > "$BASEDIR"/cluster-deployment.yaml
+jinja2 "$BASEDIR"/templates/managed-cluster.yaml.j2 > "$BASEDIR"/managed-cluster.yaml
 
-oc apply -k ./
+oc apply -k "$BASEDIR"/
