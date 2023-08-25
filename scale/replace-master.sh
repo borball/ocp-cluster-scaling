@@ -29,14 +29,14 @@ old_master_node=$1
 new_master_node=$2
 
 pre_check(){
-  if oc get node "$old_master_node"; then
+  if oc get node "$old_master_node" 1>/dev/null; then
     echo "Node $old_master_node exist will be replaced."
   else
     echo "Node $old_master_node not exist."
     exit 1
   fi
 
-  if oc get node "$new_master_node"; then
+  if oc get node "$new_master_node" 1>/dev/null; then
     echo "Node $new_master_node will be the new master."
   else
     echo "Node $new_master_node not exist."
@@ -58,15 +58,14 @@ print_cluster_info(){
 }
 
 export_cluster_info(){
-  export new_master_node="$new_master_node"
-
-  local boot_mode=$(oc get bmh -n openshift-machine-api "$old_master_node" -o jsonpath={.spec.bootMode})
-  export boot_mode="$boot_mode"
+  export new_master_node
+  boot_mode=$(oc get bmh -n openshift-machine-api "$old_master_node" -o jsonpath={.spec.bootMode})
+  export boot_mode
 
   local old_machine_name=$(oc get bmh -n openshift-machine-api "$old_master_node" -o jsonpath={.spec.consumerRef.name})
 
-  local infra_id=$(oc get machine -n openshift-machine-api "$old_machine_name" -o jsonpath={..labels."machine\.openshift\.io/cluster-api-cluster"})
-  export infra_id="$infra_id"
+  infra_id=$(oc get machine -n openshift-machine-api "$old_machine_name" -o jsonpath={..labels."machine\.openshift\.io/cluster-api-cluster"})
+  export infra_id
 
   local new_hostname_short=$(echo "$new_master_node" |cut -d '.' -f 1)
   export new_machine_name="$infra_id-$new_hostname_short"
