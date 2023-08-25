@@ -117,8 +117,8 @@ host_patch='
 }
 '
 
-echo "PATCHING HOST"
-echo "${host_patch}" | jq .
+#echo "PATCHING HOST"
+#echo "${host_patch}" | jq .
 
 curl -s \
      -X PATCH \
@@ -126,4 +126,4 @@ curl -s \
      -H "Content-type: application/merge-patch+json" \
      -d "${host_patch}"
 
-oc get baremetalhost -n openshift-machine-api -o yaml "${host}"
+#oc get baremetalhost -n openshift-machine-api -o yaml "${host}"

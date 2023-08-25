@@ -10,7 +10,7 @@
 set -euo pipefail
 
 BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-export BASEDIR=$BASEDIR
+export BASEDIR
 
 usage(){
   echo "Usage: $0 config.yaml [nm-state.yaml]"
@@ -41,7 +41,7 @@ fi
 export_cluster_info(){
   cluster_name=$(oc get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
   namespace=$cluster_name
-  export cluster_name="$cluster_name"
+  export cluster_name
 
   local hostname=$(yq '.node.hostname' "$config_file")
   export node_hostname="$hostname"
