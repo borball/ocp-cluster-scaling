@@ -1,11 +1,16 @@
 #!/bin/bash
 #
-# Add a master and boot from discovery iso
+# - Add a new node, can be master or worker
+# - create NMStateConfig
+# - generate discovery ISO
+# - boot the node from discovery ISO
+# - trigger the OCP deployment and monitor the installation progress
+#
 
 set -euo pipefail
 
 BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-export BASEDIR=$BASEDIR
+export BASEDIR
 
 usage(){
   echo "Usage: $0 config.yaml [nm-state.yaml]"
@@ -49,7 +54,10 @@ export -f och
 export_cluster_info(){
   cluster_name=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
   namespace=$cluster_name
-  export cluster_name="$cluster_name"
+  export cluster_name
+
+  local hostname=$(yq '.node.hostname' "$config_file")
+  export node_hostname="$hostname"
 }
 
 print_cluster_info(){
@@ -113,13 +121,12 @@ patch_agent(){
 
   echo "Patching the agent to approve the node and trigger the deployment."
   local role=$(yq '.node.role' "$config_file")
-  local hostname=$(yq '.node.hostname' "$config_file")
   local install_disk=$(yq '.node.disk // "" ' "$config_file")
 
   agent_name=$(och get agent -n "$namespace" -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
 
-  echo "patch /spec/hostname with: ${hostname}"
-  och patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'"${hostname}"'" }]'
+  echo "patch /spec/hostname with: ${node_hostname}"
+  och patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'"${node_hostname}"'" }]'
   echo "patch /spec/approved with: true"
   och patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
   sleep 10
@@ -155,4 +162,7 @@ boot_node
 patch_agent
 monitor_install
 print_cluster_info
+
+
+
 
