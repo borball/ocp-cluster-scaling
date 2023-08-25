@@ -4,7 +4,7 @@ kind: NMStateConfig
 metadata:
   labels:
     infraenvs.agent-install.openshift.io: {{ environ('cluster_name') }}
-  name: {{ environ('cluster_name') }}
+  name: {{ environ('node_hostname') }}
 spec:
   interfaces:
   - macAddress: {{ node.network.mac }}

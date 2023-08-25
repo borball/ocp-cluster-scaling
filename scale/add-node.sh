@@ -42,6 +42,9 @@ export_cluster_info(){
   cluster_name=$(oc get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
   namespace=$cluster_name
   export cluster_name="$cluster_name"
+
+  local hostname=$(yq '.node.hostname' "$config_file")
+  export node_hostname="$hostname"
 }
 
 print_cluster_info(){
@@ -105,13 +108,12 @@ patch_agent(){
 
   echo "Patching the agent to approve the node and trigger the deployment."
   local role=$(yq '.node.role' "$config_file")
-  local hostname=$(yq '.node.hostname' "$config_file")
   local install_disk=$(yq '.node.disk // "" ' "$config_file")
 
   agent_name=$(oc get agent -n "$namespace" -o jsonpath="{.items[?(@.spec.approved==false)].metadata.name}")
 
-  echo "patch /spec/hostname with: ${hostname}"
-  oc patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'"${hostname}"'" }]'
+  echo "patch /spec/hostname with: ${node_hostname}"
+  oc patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/hostname", "value": "'"${node_hostname}"'" }]'
   echo "patch /spec/approved with: true"
   oc patch agent -n "$namespace" "$agent_name" --type=json --patch '[{ "op": "replace", "path": "/spec/approved", "value": true }]'
   sleep 10
