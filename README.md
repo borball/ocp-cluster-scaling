@@ -2,7 +2,29 @@
 
 ## Ideas
 
-Using OpenShift Multi-Cluster Engine(MCE) to expand the OpenShift cluster. 
+Using OpenShift Multi-Cluster Engine(MCE) to expand the cluster.
+
+There are two different scenarios:
+
+- Local cluster as MCE hub
+- Shared MCE hub
+
+### Local cluster as MCE hub
+
+If you only want to expand one particular cluster, you can use the helper scripts in this repo
+to create an MCE hub on the cluster itself(local-cluster), import the cluster into the MCE hub and expand it.
+
+This [local-cluster](https://github.com/borball/ocp-cluster-scaling/tree/local-cluster) branch will cover this scenario.
+
+### Shared MCE hub
+
+If your lab already have many clusters deployed with different methods, but the clusters are not managed
+by Red Hat Advanced Cluster Management(ACM) or MCE(part of Red Hat ACM), you can use the helper scripts in this repo
+to create an MCE hub, import the clusters into the MCE hub, manage the clusters going forward. The MCE hub can be reused
+across the different cluster, it is a 'Shared MCE hub'. The cluster which acts as the 'Shared MCE hub' is a 'Management Cluster'.
+The clusters imported into the MCE hub are 'Managed Clusters'.
+
+The [master](https://github.com/borball/ocp-cluster-scaling/) branch will cover this scenario.
 
 ## Procedures
 

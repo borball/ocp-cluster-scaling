@@ -44,18 +44,19 @@ print_cluster_info(){
 }
 
 export_cluster_info(){
-  local cluster_name=$(oc get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
-  namespace=$cluster_name
-}
-
-create_new_bmh_machine(){
-  local infra_id=$(oc get -n "$namespace" ClusterDeployment -o jsonpath={..infraID})
-  export infra_id="$infra_id"
-  local new_hostname_short=$(echo "$new_master_hostname" |cut -d '.' -f 1)
-  export new_machine_name="$infra_id-$new_hostname_short"
   local boot_mode=$(oc get bmh -n openshift-machine-api "$replaced_master_hostname" -o jsonpath={.spec.bootMode})
   export boot_mode="$boot_mode"
 
+  local replaced_machine_name=$(oc get bmh -n openshift-machine-api "$replaced_master_hostname" -o jsonpath={.spec.consumerRef.name})
+
+  local infra_id=$(oc get machine -n openshift-machine-api "$replaced_machine_name" -o jsonpath={..labels."machine\.openshift\.io/cluster-api-cluster"})
+  export infra_id="$infra_id"
+
+  local new_hostname_short=$(echo "$new_master_hostname" |cut -d '.' -f 1)
+  export new_machine_name="$infra_id-$new_hostname_short"
+}
+
+create_new_bmh_machine(){
   jinja2 "$BASEDIR"/templates/baremetal-host.yaml.j2 | oc apply -f -
   jinja2 "$BASEDIR"/templates/machine.yaml.j2 | oc apply -f -
 }
