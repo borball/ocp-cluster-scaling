@@ -72,7 +72,7 @@ kind: NMStateConfig
 metadata:
   labels:
     infraenvs.agent-install.openshift.io: compact
-  name: compact
+  name: worker0.compact.outbound.vz.bos2.lab
 spec:
   interfaces:
   - macAddress: de:ad:be:ff:10:40
@@ -148,6 +148,26 @@ Installation in progress: completed 33/100
 Installation in progress: completed 55/100
 Installation in progress: completed 55/100
 Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 55/100
+Installation in progress: completed 88/100
+Installation completed.
+
+-------------------------------
+Cluster information:
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.12.29   True        False         59m     Cluster version is 4.12.29
+
+Cluster nodes:
+NAME                                   STATUS   ROLES                         AGE   VERSION
+master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   72m   v1.25.11+1485cc9
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   90m   v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   91m   v1.25.11+1485cc9
+worker0.compact.outbound.vz.bos2.lab   Ready    worker                        86s   v1.25.11+1485cc9
+
 
 
 ```

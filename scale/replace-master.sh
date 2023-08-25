@@ -29,12 +29,12 @@ old_master_node=$1
 new_master_node=$2
 
 pre_check(){
-  if [ ! $(oc get node "$old_master_node") ]; then
+  if oc get node "$old_master_node"; then
     echo "Node $old_master_node not exist."
     exit 1
   fi
 
-  if [ ! $(oc get node "$new_master_node") ]; then
+  if oc get node "$new_master_node"; then
     echo "Node $new_master_node not exist."
     exit 1
   fi
