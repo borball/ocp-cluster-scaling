@@ -2,8 +2,6 @@
 #
 # script to import the cluster into the MCE hub
 
-BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-export BASEDIR=$BASEDIR
 
 if ! type "yq" > /dev/null; then
   echo "Cannot find yq in the path, please install yq on the node first. ref: https://github.com/mikefarah/yq#install"
@@ -25,6 +23,8 @@ then
   usage
   exit
 fi
+
+BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 kubeconfig_hub=$1
 kubeconfig_spoke=$2
