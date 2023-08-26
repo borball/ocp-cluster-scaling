@@ -87,7 +87,7 @@ link_machine_node(){
 }
 
 wait_for_shutdown(){
-  # node is in ready status
+  #If old node is in ready status
   if [ "True" = $(oc get nodes "$old_master_node" -o jsonpath="{.status.conditions[?(@.type=='Ready')].status}") ]; then
     read -r -p "Please shut down the master node which is going to be replaced. continue if it's been down(y/n)?" choice
     case "$choice" in

@@ -2,6 +2,7 @@
 #
 # script to import the cluster into the MCE hub
 
+
 if ! type "yq" > /dev/null; then
   echo "Cannot find yq in the path, please install yq on the node first. ref: https://github.com/mikefarah/yq#install"
 fi
@@ -46,4 +47,6 @@ jinja2 "$BASEDIR"/templates/kubeconfig-secret.yaml.j2 > "$BASEDIR"/kubeconfig-se
 jinja2 "$BASEDIR"/templates/cluster-deployment.yaml.j2 > "$BASEDIR"/cluster-deployment.yaml
 jinja2 "$BASEDIR"/templates/managed-cluster.yaml.j2 > "$BASEDIR"/managed-cluster.yaml
 
+echo "Will create CRs below, check the files to get more information."
+ls -l "$BASEDIR"/*.yaml
 oc apply -k "$BASEDIR"/
