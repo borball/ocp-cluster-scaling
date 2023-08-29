@@ -1,6 +1,7 @@
 #!/bin/bash
 # 
 # Boot the node from the iso image
+# Tested on HPE/ZT/Sushy-tools
 
 set -euoE pipefail
 
@@ -79,6 +80,7 @@ server_power_off() {
 server_power_on() {
     # Power on
     echo "Power on server."
+    echo "Eject the Virtual Media."
     curl --globoff  -L -w "%{http_code} %{url_effective}\\n" -ku ${username_password} \
     -H "Content-Type: application/json" -H "Accept: application/json" \
     -d '{"ResetType": "On"}' -X POST $system_path/Actions/ComputerSystem.Reset
@@ -119,7 +121,7 @@ server_set_boot_once_from_cd() {
 
 echo "-------------------------------"
 server_power_off
-sleep 15
+sleep 10
 
 echo "-------------------------------"
 echo
@@ -128,9 +130,9 @@ echo "-------------------------------"
 echo
 virtual_media_insert
 echo "-------------------------------"
-echo
-virtual_media_status
-echo "-------------------------------"
+#echo
+#virtual_media_status
+#echo "-------------------------------"
 echo
 server_set_boot_once_from_cd
 echo "-------------------------------"
@@ -141,8 +143,5 @@ server_power_on
 #server_restart
 echo
 echo "-------------------------------"
-echo "Node is booting from virtual media mounted with $iso_image, check your BMC console to monitor the progress."
-echo 
-echo
 echo "Node booting."
 echo

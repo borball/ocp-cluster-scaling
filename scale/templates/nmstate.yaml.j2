@@ -1,0 +1,89 @@
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: NMStateConfig
+metadata:
+  labels:
+    infraenvs.agent-install.openshift.io: {{ environ('cluster_name') }}
+  name: {{ environ('node_hostname') }}
+spec:
+  interfaces:
+  - macAddress: {{ node.network.mac }}
+    name: {{ node.network.interface }}
+  config:
+    dns-resolver:
+      config:
+        server:
+        {% for dns in node.network.dns -%}
+        - {{ dns }}
+        {% endfor -%}
+    {% if node.network.vlan is defined and node.network.vlan.enabled -%}
+    interfaces:
+    - name: {{ node.network.vlan.name }}
+      type: vlan
+      state: up
+      vlan:
+        base-iface: {{ node.network.interface }}
+        id: {{ node.network.vlan.id }}
+      {% if node.network.ipv4.enabled is sameas true -%}
+      ipv4:
+        address:
+        - ip: {{ node.network.ipv4.ip }}
+          prefix-length: {{ node.network.ipv4.prefix }}
+        enabled: {{ node.network.ipv4.enabled|lower }}
+        dhcp: false
+      {% endif -%}
+      {% if node.network.ipv6.enabled is sameas true -%}
+      ipv6:
+        address:
+        - ip: {{ node.network.ipv6.ip }}
+          prefix-length: {{ node.network.ipv6.prefix }}
+        enabled: {{ node.network.ipv6.enabled|lower }}
+        dhcp: false
+      {% endif %}
+    routes:
+      config:
+      {% if node.network.ipv4.enabled is sameas true -%}
+      - destination: 0.0.0.0/0
+        next-hop-address: {{ node.network.ipv4.gateway }}
+        next-hop-interface: {{ node.network.vlan.name }}
+      {% endif -%}
+      {% if node.network.ipv6.enabled is sameas true -%}
+      - destination: ::/0
+        next-hop-address: {{ node.network.ipv6.gateway }}
+        next-hop-interface: {{ node.network.vlan.name }}
+      {% endif %}
+    {% else %}
+    interfaces:
+    - name: {{ node.network.interface }}
+      type: ethernet
+      state: up
+      {% if node.network.ipv4.enabled is sameas true -%}
+      ipv4:
+        address:
+        - ip: {{ node.network.ipv4.ip }}
+          prefix-length: {{ node.network.ipv4.prefix }}
+        enabled: {{ node.network.ipv4.enabled|lower }}
+        dhcp: false
+      {% endif -%}
+      {% if node.network.ipv6.enabled is sameas true -%}
+      ipv6:
+        address:
+        - ip: {{ node.network.ipv6.ip }}
+          prefix-length: {{ node.network.ipv6.prefix }}
+        enabled: {{ node.network.ipv6.enabled|lower }}
+        dhcp: false
+      {% endif %}
+    routes:
+      config:
+      {% if node.network.ipv4.enabled is sameas true -%}
+      - destination: 0.0.0.0/0
+        next-hop-address: {{ node.network.ipv4.gateway }}
+        next-hop-interface: {{ node.network.interface }}
+      {% endif -%}
+      {% if node.network.ipv6.enabled is sameas true -%}
+      - destination: ::/0
+        next-hop-address: {{ node.network.ipv6.gateway }}
+        next-hop-interface: {{ node.network.interface }}
+      {% endif %}
+
+    {% endif -%}
