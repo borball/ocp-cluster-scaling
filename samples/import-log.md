@@ -4,7 +4,6 @@
 [root@hub-helper import]# ./import.sh
 namespace/compact created
 secret/compact-admin-kubeconfig created
-secret/compact-admin-password created
 secret/pull-secret created
 infraenv.agent-install.openshift.io/compact created
 managedcluster.cluster.open-cluster-management.io/compact created
