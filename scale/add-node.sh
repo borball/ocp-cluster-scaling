@@ -100,8 +100,7 @@ boot_node(){
 
   #Due to some bugs https://issues.redhat.com/browse/MGMT-14923, the isoDownloadURL is always pointing to the current latest OCP version(4.13 at this point).
   #Need to manually change to 4.12 to avoid issues
-  #iso_image=${iso_image//4.13/4.12}
-  #since multiple-engine v2.3.1, no need the workaround
+  iso_image=${iso_image//4.13/4.12}
 
   local kvm_uuid=$(yq '.node.bmc.kvm_uuid // "" ' $config_file)
 

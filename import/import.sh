@@ -45,7 +45,6 @@ export pull_secret=$(ocs get secrets -n openshift-config pull-secret -o jsonpath
 export ssh_key=$(ocs get mc 99-master-ssh -o jsonpath={..sshAuthorizedKeys[0]})
 export domain=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq '.baseDomain')
 export ocp_version=$(ocs version -o json |jq -r '.openshiftVersion')
-export ocp_y_release=$(echo $ocp_version |cut -d. -f1-2)
 export imageset=img${ocp_version}-x86-64-appsub
 export api_vip=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".platform.baremetal.apiVIP")
 export ingress_vip=$(ocs get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".platform.baremetal.ingressVIP")
