@@ -13,3 +13,4 @@ spec:
   nmStateConfigLabelSelector:
     matchLabels:
       infraenvs.agent-install.openshift.io: {{ environ('cluster_name') }}
+  osImageVersion: {{ environ('ocp_y_release') }}
