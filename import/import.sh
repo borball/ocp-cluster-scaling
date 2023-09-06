@@ -54,15 +54,19 @@ export infra_id=$(ocs get infrastructure cluster -o json | jq .status.infrastruc
 #export password=$(echo $spoke_password |base64 -w 0)
 export kubeconfig_secret=$(ocs get secrets -n openshift-kube-apiserver node-kubeconfigs -o jsonpath={..lb-ext\\.kubeconfig})
 
-jinja2 "$BASEDIR"/templates/ns.yaml.j2 > "$BASEDIR"/ns.yaml
-jinja2 "$BASEDIR"/templates/pull-secret.yaml.j2 > "$BASEDIR"/pull-secret.yaml
-jinja2 "$BASEDIR"/templates/infraenv.yaml.j2 > "$BASEDIR"/infraenv.yaml
-jinja2 "$BASEDIR"/templates/agent-cluster-install.yaml.j2 > "$BASEDIR"/agent-cluster-install.yaml
-#jinja2 "$BASEDIR"/templates/kubeadmin-passwd-secret.yaml.j2 > "$BASEDIR"/kubeadmin-passwd-secret.yaml
-jinja2 "$BASEDIR"/templates/kubeconfig-secret.yaml.j2 > "$BASEDIR"/kubeconfig-secret.yaml
-jinja2 "$BASEDIR"/templates/cluster-deployment.yaml.j2 > "$BASEDIR"/cluster-deployment.yaml
-jinja2 "$BASEDIR"/templates/managed-cluster.yaml.j2 > "$BASEDIR"/managed-cluster.yaml
+cluster_workspace="$BASEDIR"/"$cluster_name"
+mkdir -p "$cluster_workspace"
+
+jinja2 "$BASEDIR"/templates/ns.yaml.j2 > "$cluster_workspace"/ns.yaml
+jinja2 "$BASEDIR"/templates/pull-secret.yaml.j2 > "$cluster_workspace"/pull-secret.yaml
+jinja2 "$BASEDIR"/templates/infraenv.yaml.j2 > "$cluster_workspace"/infraenv.yaml
+jinja2 "$BASEDIR"/templates/agent-cluster-install.yaml.j2 > "$cluster_workspace"/agent-cluster-install.yaml
+#jinja2 "$BASEDIR"/templates/kubeadmin-passwd-secret.yaml.j2 > "$cluster_workspace"/kubeadmin-passwd-secret.yaml
+jinja2 "$BASEDIR"/templates/kubeconfig-secret.yaml.j2 > "$cluster_workspace"/kubeconfig-secret.yaml
+jinja2 "$BASEDIR"/templates/cluster-deployment.yaml.j2 > "$cluster_workspace"/cluster-deployment.yaml
+jinja2 "$BASEDIR"/templates/managed-cluster.yaml.j2 > "$cluster_workspace"/managed-cluster.yaml
+cp "$BASEDIR"/kustomization.yaml "$cluster_workspace"/
 
 echo "Will create CRs below, check the files to get more information."
-ls -l "$BASEDIR"/*.yaml
-och apply -k "$BASEDIR"/
+ls -l "$cluster_workspace"/
+och apply -k "$cluster_workspace"/

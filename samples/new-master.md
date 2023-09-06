@@ -1,14 +1,13 @@
 ```shell
-[root@hub-helper scale]# oc get nodes
-NAME                                   STATUS   ROLES                         AGE     VERSION
-master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h1m    v1.25.11+1485cc9
-master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h19m   v1.25.11+1485cc9
-master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h20m   v1.25.11+1485cc9
-worker0.compact.outbound.vz.bos2.lab   Ready    worker                        110m    v1.25.11+1485cc9
-[root@hub-helper scale]# 
-[root@hub-helper scale]# 
-[root@hub-helper scale]# 
 [root@hub-helper scale]# cat config-master3.yaml 
+#MCE hub kubeconfig
+hub:
+  kubeconfig: /root/workload-enablement/kubeconfigs/kubeconfig-mce.yaml
+
+#The cluster which will be imported
+managed:
+  kubeconfig: /root/workload-enablement/kubeconfigs/kubeconfig-compact.yaml
+
 node:
   hostname: master3.compact.outbound.vz.bos2.lab
   role: master
@@ -37,21 +36,55 @@ node:
       prefix: 64
       gateway: 2600:52:7:58::1
 
+[root@hub-helper scale]# cat config-master3.yaml 
+#MCE hub kubeconfig
+hub:
+  kubeconfig: /root/workload-enablement/kubeconfigs/kubeconfig-mce.yaml
 
-[root@hub-helper scale]# 
-[root@hub-helper scale]# 
+#The cluster which will be imported
+managed:
+  kubeconfig: /root/workload-enablement/kubeconfigs/kubeconfig-compact.yaml
+
+node:
+  hostname: master3.compact.outbound.vz.bos2.lab
+  role: master
+  
+  bmc:
+    address: 192.168.58.15:8080
+    username: Administrator
+    password: dummy
+    kvm_uuid: 22222222-1111-1111-0000-000000000003
+
+  network:
+    dhcp: false
+    dns:
+      - 192.168.58.15
+      #- 2600:52:7:58::15
+    interface: ens1f0
+    mac: de:ad:be:ff:10:33
+    ipv4:
+      enabled: true
+      ip: 192.168.58.33
+      prefix: 25
+      gateway: 192.168.58.1
+    ipv6:
+      enabled: false
+      ip: 2600:52:7:58::33
+      prefix: 64
+      gateway: 2600:52:7:58::1
+
 [root@hub-helper scale]# ./add-node.sh config-master3.yaml 
 -------------------------------
 Cluster information:
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.12.29   True        False         169m    Cluster version is 4.12.29
+version   4.12.29   True        False         43h     Cluster version is 4.12.29
 
 Cluster nodes:
-NAME                                   STATUS   ROLES                         AGE     VERSION
-master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h2m    v1.25.11+1485cc9
-master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h21m   v1.25.11+1485cc9
-master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h21m   v1.25.11+1485cc9
-worker0.compact.outbound.vz.bos2.lab   Ready    worker                        111m    v1.25.11+1485cc9
+NAME                                   STATUS   ROLES                         AGE   VERSION
+master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   43h   v1.25.11+1485cc9
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   43h   v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   43h   v1.25.11+1485cc9
+worker0.compact.outbound.vz.bos2.lab   Ready    worker                        41h   v1.25.11+1485cc9
 
 -------------------------------
 Customized NMStateConfig CR not provided, new node uses static IP, will create NMStateConfig CR below:
@@ -95,11 +128,12 @@ spec:
 -------------------------------
 Power off server.
 204 https://192.168.58.15:8080/redfish/v1/Systems/22222222-1111-1111-0000-000000000003/Actions/ComputerSystem.Reset
+-------------------------------
 
 204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.EjectMedia
 -------------------------------
 
-Insert Virtual Media: https://assisted-image-service-multicluster-engine.apps.compact.outbound.vz.bos2.lab/images/e6b14758-5cd2-4918-b857-34f69aac3167?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiJlNmIxNDc1OC01Y2QyLTQ5MTgtYjg1Ny0zNGY2OWFhYzMxNjcifQ._5Uam9od5XmMj5D4g8_lJTmwL-uAuxw1S2_6gRJvn1QlOuTcRJM1gtQRPHrNnn0tJ4_ysirBzNtqd7gJQjE3wA&arch=x86_64&type=minimal-iso&version=4.12
+Insert Virtual Media: https://assisted-image-service-multicluster-engine.apps.mce.outbound.vz.bos2.lab/images/58d6de51-c013-49b9-9c28-2cc0844ffcae?api_key=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbmZyYV9lbnZfaWQiOiI1OGQ2ZGU1MS1jMDEzLTQ5YjktOWMyOC0yY2MwODQ0ZmZjYWUifQ.LuiUoRC78IgoOowMZfzzlgeePXVuHpaSxAkI9FrzgL3pTliB25SLbR5CWLFJ5xp2lkbNj0wQ9WmxOHsig-bnwQ&arch=x86_64&type=minimal-iso&version=4.12
 204 https://192.168.58.15:8080/redfish/v1/Managers/22222222-1111-1111-0000-000000000003/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
 -------------------------------
 
@@ -130,7 +164,7 @@ Installation in progress: completed /100
 Installation in progress: completed /100
 Installation in progress: completed /100
 Installation in progress: completed /100
-Installation in progress: completed /100
+Installation in progress: completed 42/100
 Installation in progress: completed 42/100
 Installation in progress: completed 57/100
 Installation in progress: completed 57/100
@@ -139,20 +173,20 @@ Installation in progress: completed 57/100
 Installation in progress: completed 57/100
 Installation in progress: completed 57/100
 Installation in progress: completed 57/100
-Installation in progress: completed 85/100
+Installation in progress: completed 57/100
 Installation completed.
 
 -------------------------------
 Cluster information:
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.12.29   True        False         3h2m    Cluster version is 4.12.29
+version   4.12.29   True        False         43h     Cluster version is 4.12.29
 
 Cluster nodes:
-NAME                                   STATUS   ROLES                         AGE     VERSION
-master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h15m   v1.25.11+1485cc9
-master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h33m   v1.25.11+1485cc9
-master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   3h34m   v1.25.11+1485cc9
-master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   96s     v1.25.11+1485cc9
-worker0.compact.outbound.vz.bos2.lab   Ready    worker                        124m    v1.25.11+1485cc9
+NAME                                   STATUS   ROLES                         AGE   VERSION
+master0.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   43h   v1.25.11+1485cc9
+master1.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   44h   v1.25.11+1485cc9
+master2.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   44h   v1.25.11+1485cc9
+master3.compact.outbound.vz.bos2.lab   Ready    control-plane,master,worker   78s   v1.25.11+1485cc9
+worker0.compact.outbound.vz.bos2.lab   Ready    worker                        41h   v1.25.11+1485cc9
 
 ```
