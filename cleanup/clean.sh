@@ -4,26 +4,9 @@
 
 echo "You are going to detach the managed cluster from the MCE hub."
 
-usage(){
-  echo "Usage: $0 cluster"
-  echo "Example: $0 compact"
-}
-
-if [ $# -lt 1 ]
-then
-  usage
-  exit
-fi
-
-if [[ ( $@ == "--help") ||  $@ == "-h" ]]
-then
-  usage
-  exit
-fi
-
 BASEDIR="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-cluster_name=$1
 
+cluster_name=$(oc get cm -n kube-system cluster-config-v1 -o jsonpath={..install-config} |yq ".metadata.name")
 cluster_workspace="$BASEDIR"/../import/"$cluster_name"
 
 echo "Delete managed cluster: $cluster_name"
