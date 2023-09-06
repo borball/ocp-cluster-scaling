@@ -318,3 +318,29 @@ Following are some execution logs:
 
 - [Replace a healthy master](samples/replace-healthy-master.md)
 - [Replace a unhealthy master](samples/replace-unhealthy-master.md)
+
+
+### Delete a worker
+
+If you want to delete the worker added by add-node.sh script, you can run command below:
+
+```shell
+cd scale
+./delete-worker.sh worker-node
+```
+
+Example:
+
+```shell
+./delete-worker.sh worker0.compact.outbound.vz.bos2.lab
+
+```
+
+## Cleanup
+
+If you want to delete all the managed cluster, MultiClusterEngine instance and MultiClusterEngine Operator, run script below:
+
+```shell
+cd cleanup
+./clean.sh
+```
