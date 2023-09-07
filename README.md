@@ -344,3 +344,8 @@ If you want to delete all the managed cluster, MultiClusterEngine instance and M
 cd cleanup
 ./clean.sh
 ```
+
+Execution logs:
+
+- [Cleanup](samples/cleanup.md)
+
