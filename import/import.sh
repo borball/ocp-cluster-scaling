@@ -55,7 +55,8 @@ echo "Will create CRs below, check the files to get more information."
 ls -l "$cluster_workspace"/
 oc apply -k "$cluster_workspace"/
 
+echo
 oc get mcl
-
-echo "Run oc get mcl -w to monitor that if the cluster will be imported properly."
+echo
+echo "Run oc get mcl -w to monitor that if the cluster will be imported and joined properly."
 echo
