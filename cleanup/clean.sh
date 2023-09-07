@@ -12,13 +12,15 @@ echo "Deleting managed cluster: $cluster_name"
 oc delete -k "$cluster_workspace"/
 
 echo "Deleting MultiClusterEngine instance."
+oc delete AgentServiceConfig agent
 oc delete MultiClusterEngine multiclusterengine
+
+sleep 30
 
 echo "Deleting MultiClusterEngine operator."
 oc delete ip -n multicluster-engine --all
 oc delete csv -n multicluster-engine --all
 oc delete subs -n multicluster-engine --all
 oc delete OperatorGroup -n multicluster-engine --all
+sleep 20
 oc delete ns multicluster-engine
-
-

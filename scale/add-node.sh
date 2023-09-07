@@ -106,6 +106,9 @@ patch_agent(){
     sleep 15
   done
 
+  echo "Node agent registered."
+  oc get agent -n "$namespace"
+  echo
   echo "Patching the agent to approve the node and trigger the deployment."
   local role=$(yq '.node.role' "$config_file")
   local install_disk=$(yq '.node.disk // "" ' "$config_file")
