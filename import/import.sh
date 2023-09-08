@@ -70,3 +70,8 @@ cp "$BASEDIR"/kustomization.yaml "$cluster_workspace"/
 echo "Will create CRs below, check the files to get more information."
 ls -l "$cluster_workspace"/
 och apply -k "$cluster_workspace"/
+
+echo
+oc get mcl
+echo
+echo "Run oc get mcl -w to see if the cluster is imported properly."
