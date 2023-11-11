@@ -140,17 +140,17 @@ monitor_install(){
     echo "Installation in progress: completed $installation_percentage/100"
     sleep 45
   done
-  echo "Installation completed."
-  echo
 }
 
 print_cluster_info
 export_cluster_info
 create_nm
 sleep 20
+echo Installation started: $(date "+%D %T")
 boot_node
 patch_agent
 monitor_install
+echo Installation completed: $(date "+%D %T")
 print_cluster_info
 
 
