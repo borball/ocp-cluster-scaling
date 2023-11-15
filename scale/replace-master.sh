@@ -105,17 +105,21 @@ wait_etcd_operator(){
   done
 }
 
+find_healthy_etcd_pod(){
+  export etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running,metadata.name!=etcd-"$old_master_node",metadata.name!=etcd-"$new_master_node" -o jsonpath="{.items[0].metadata.name}")
+}
 
 print_etcd_member(){
   echo "-------------------------------"
   echo "ETCD member list:"
-  #find a healthy one
-  local etcd_pod=$(oc get pod -n openshift-etcd --selector app=etcd --field-selector status.phase=Running,metadata.name!=etcd-"$old_master_node",metadata.name!=etcd-"$new_master_node" -o jsonpath="{.items[0].metadata.name}")
-  
-  oc rsh -n openshift-etcd "$etcd_pod" etcdctl member list -w table
-  #local etcd_delete_member=$(oc rsh -n openshift-etcd "$etcd_pod" etcdctl member list |grep "$old_master_node" |cut -d ',' -f 1)
-  #oc rsh -n openshift-etcd "$etcd_pod" etcdctl member remove "$etcd_delete_member"
-  #oc rsh -n openshift-etcd "$etcd_pod" etcdctl member list -w table
+  oc rsh -n openshift-etcd "$etcd_etcd_podpod" etcdctl member list -w table
+}
+
+delete_etcd_member(){
+  echo "-------------------------------"
+  echo "Delete ETCD member "$old_master_node":"
+  local etcd_delete_member=$(oc rsh -n openshift-etcd "$etcd_pod" etcdctl member list |grep "$old_master_node" |cut -d ',' -f 1)
+  oc rsh -n openshift-etcd "$etcd_pod" etcdctl member remove "$etcd_delete_member"
 }
 
 delete_old_bmh_machine(){
@@ -124,7 +128,6 @@ delete_old_bmh_machine(){
   local old_machine_name=$(oc get bmh -n openshift-machine-api "$old_master_node" -o jsonpath={.spec.consumerRef.name})
   oc delete bmh -n openshift-machine-api "$old_master_node"
   oc delete machine -n openshift-machine-api "$old_machine_name"
-  sleep 60
 }
 
 last_check(){
@@ -139,10 +142,13 @@ pre_check
 export_cluster_info
 create_new_bmh_machine
 link_machine_node
+find_healthy_etcd_pod
 wait_etcd_operator
 print_etcd_member
 wait_for_shutdown
 delete_old_bmh_machine
+delete_etcd_member
+sleep 60
 wait_etcd_operator
 print_etcd_member
 last_check
